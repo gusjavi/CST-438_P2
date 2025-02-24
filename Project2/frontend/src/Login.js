@@ -16,8 +16,8 @@ function LoginPage() {
   }
 
   function handleSubmit(e) {
-    e.preventDefault();
-    alert("Login successful! (Redirect to dashboard when backend is ready)");
+      e.preventDefault();
+      navigate("/landing");
   }
 
   return (
