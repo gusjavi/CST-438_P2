@@ -1,0 +1,50 @@
+-- Just an initial possible idea for the schema
+
+-- Users table: stores registered users.
+CREATE TABLE Users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- TierListTypes table: defines the different categories (e.g. Pizza Restaurants).
+CREATE TABLE TierListTypes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT
+);
+
+-- Options table: stores the available options for each tier list type.
+CREATE TABLE Options (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    type_id INT NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    FOREIGN KEY (type_id) REFERENCES TierListTypes(id)
+);
+
+-- TierListSubmissions table: each row represents a ranking submission by a user
+-- for a given tier list type. This is the “public tier list” that others can view.
+CREATE TABLE TierListSubmissions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    type_id INT NOT NULL,
+    is_public BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES Users(id),
+    FOREIGN KEY (type_id) REFERENCES TierListTypes(id)
+);
+
+-- TierListRanks table: records the ranking value a user (via a submission)
+-- assigns to a specific option. Here, rank_value could be numeric (for example, on a scale)
+-- so that average rankings can be computed. If you want to use letter grades,
+-- you might store both a textual label and a numeric value.
+CREATE TABLE TierListRanks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    submission_id INT NOT NULL,
+    option_id INT NOT NULL,
+    rank_value DECIMAL(3,2) NOT NULL,  -- numeric value for ranking (e.g. 1.0 to 10.0)
+    FOREIGN KEY (submission_id) REFERENCES TierListSubmissions(id),
+    FOREIGN KEY (option_id) REFERENCES Options(id)
+);
