@@ -3,9 +3,9 @@ import { Routes, Route } from "react-router-dom";
 import Home from "./Home";
 import LoginPage from "./Login";
 import SignupPage from "./Signup";
-import LandingPg from "./LandingPg";  // Capitalized
-import TierListPg from "./TierListPg";  // Capitalized
-import EditPg from "./EditPg";  // Capitalized
+import LandingPg from "./LandingPg";
+import TierListPg from "./TierListPg";
+import EditPg from "./EditPg";
 
 function App() {
     return (

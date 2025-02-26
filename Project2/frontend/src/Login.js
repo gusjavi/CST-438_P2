@@ -21,7 +21,7 @@ function LoginPage() {
   }
 
   return (
-    <div className="container">
+    <div className="container1">
       <h2>Log in</h2>
       <form onSubmit={handleSubmit} className="form">
         <input type="text" name="username" placeholder="Username or Email" value={formData.username} onChange={handleChange} required className="input" />

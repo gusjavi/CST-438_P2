@@ -17,7 +17,7 @@ function SignupPage() {
   }
 
   return (
-    <div className="container">
+    <div className="container1">
       <h2>Create Account</h2>
       <form onSubmit={handleSubmit} className="form">
         <input type="text" name="username" placeholder="Username" value={formData.username} onChange={handleChange} required className="input" />
