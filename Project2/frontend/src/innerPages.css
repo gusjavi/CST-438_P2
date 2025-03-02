@@ -63,7 +63,7 @@ body {
 }
 
 .tierList-container {
-    width: 400px;
+    width: 800px;
     margin: auto;
     text-align: center;
 }
@@ -94,16 +94,41 @@ input {
 }
 
 .tier-box {
-    min-height: 50px;
+    min-height: 100px;
     padding: 10px;
     background-color: lightgray;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: flex-start;
 }
 
 .tier-item {
-    padding: 8px;
+    padding: 10px;
     background-color: white;
     border: 1px solid #000;
     border-radius: 5px;
     margin-bottom: 5px;
     cursor: grab;
+    height: 50px;
+    width:  50px;
+}
+.tier.S {
+    background-color: #ff4d4d;
+}
+
+.tier.A {
+    background-color: #ff9933;
+}
+
+.tier.B {
+    background-color: #ffcc33;
+}
+
+.tier.C {
+    background-color: #99cc33;
+}
+
+.tier.D {
+    background-color: #3399ff;
 }

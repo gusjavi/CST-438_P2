@@ -7,7 +7,8 @@ const initialTiers = {
     A: [],
     B: [],
     C: [],
-    D: []
+    D: [],
+    StoreBx:[]
 };
 
 function TierListPg() {
@@ -26,7 +27,7 @@ function TierListPg() {
         if (input.trim() !== "") {
             setTiers((prev) => ({
                 ...prev,
-                S: [...prev.S, input]
+                StoreBx: [...prev.StoreBx, input] // Add to StoreBx
             }));
             setInput("");
         }
@@ -82,13 +83,13 @@ function TierListPg() {
                         onChange={(e) => setInput(e.target.value)}
                         placeholder="Enter an item..."
                     />
-                    <button className="btn" onClick={handleAddItem}>Add</button>
+                    <button className="btn" onClick={handleAddItem}>Add</button>{/*for now its input by user, later will change*/}
                 </div>
 
                 {Object.keys(tiers).map((tier) => (
                     <div
                         key={tier}
-                        className="tier"
+                        className={`tier ${tier}`} // Dynamically assign the tier class
                         onDragOver={handleDragOver}
                         onDrop={() => handleDrop(tier)}
                     >
