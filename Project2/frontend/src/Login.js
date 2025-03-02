@@ -17,7 +17,7 @@ function LoginPage() {
 
   function handleSubmit(e) {
       e.preventDefault();
-      navigate("/landing");
+      navigate("/");
   }
 
   return (

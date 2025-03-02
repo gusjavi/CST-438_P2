@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import { useNavigate } from "react-router-dom";
 import "./innerPages.css";
 
@@ -7,6 +7,12 @@ function EditPg() {
 
     const [formData, setFormData] = useState({ username: "", password: "" });
     const [error, setError] = useState("");
+    const [isSignedIn, setSignedIn] = useState(localStorage.getItem("isSignedIn") === "true");
+    const [username, setUsername] = useState(localStorage.getItem("username") || "Guest");
+
+    useEffect(() => {
+        localStorage.setItem("isSignedIn", isSignedIn);
+    }, [isSignedIn]);
 
     function handleChange(e) {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -14,7 +20,7 @@ function EditPg() {
 
     function handleSubmit(e) {
         e.preventDefault();
-        navigate("/landing");
+        navigate("/");
     }
      function deleteAccount(){
          {/*waiting for db*/}
@@ -22,19 +28,22 @@ function EditPg() {
     function deleteInfo(){
         {/*waiting for db*/}
     }
-
+    const handleSignOut = () => {
+        localStorage.removeItem("isSignedIn");
+        localStorage.removeItem("username");
+        setUsername("Guest");
+        setSignedIn(false);
+        navigate("/");
+    };
 
     return (
         <div>
             <h1>Welcome to the Edit</h1>
 
             <div className="container">
-                <button onClick={() => navigate("/landing")} className="btn">
-                    Go to Home
-                </button>
-                <button onClick={() => navigate("/tier")} className="btn">
-                    Go to Tier
-                </button>
+                <button onClick={() => navigate("/")} className="btn">Go to Home</button>
+                <button onClick={() => navigate("/tier")} className="btn">Go to Tier</button>
+                <button onClick={handleSignOut} className="btn">Sign Out</button>
             </div>
             <div className="container2">
             <form onSubmit={handleSubmit} className="form">
