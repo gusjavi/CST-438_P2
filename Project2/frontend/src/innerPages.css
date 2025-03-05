@@ -14,6 +14,7 @@ body {
     margin-left: auto;
     margin-right: auto;
 }
+
 .container2 {
     display: flex;
     flex-direction: row;
@@ -24,17 +25,17 @@ body {
     margin-left: auto;
     margin-right: auto;
 }
+
 .container3 {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content:space-around;
+    justify-content: space-around;
     margin-top: 50px;
     width: fit-content;
     margin-left: auto;
     margin-right: auto;
 }
-
 
 .form {
     display: flex;
@@ -63,7 +64,7 @@ body {
 }
 
 .tierList-container {
-    width: 400px;
+    width: 800px;
     margin: auto;
     text-align: center;
 }
@@ -94,16 +95,119 @@ input {
 }
 
 .tier-box {
-    min-height: 50px;
+    min-height: 100px;
     padding: 10px;
     background-color: lightgray;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: flex-start;
 }
 
 .tier-item {
-    padding: 8px;
+    padding: 10px;
+    background-color: white;
+    border: 1px solid #000;
+    border-radius: 5px;
+    margin-bottom: 5px;
+    cursor: grab;
+    height: 50px;
+    width: 50px;
+}
+
+.tier.S {
+    background-color: #ff4d4d;
+}
+
+.tier.A {
+    background-color: #ff9933;
+}
+
+.tier.B {
+    background-color: #ffcc33;
+}
+
+.tier.C {
+    background-color: #99cc33;
+}
+
+.tier.D {
+    background-color: #3399ff;
+}
+
+.horizontal-scroll-wrapper2 {
+    display: flex;
+    overflow-x: auto;
+    gap: 20px;
+    padding: 20px 0;
+    width: 100%;
+    max-width: 100%;
+    scrollbar-width: thin;
+    scrollbar-color: #007bff #f5f5f5;
+}
+
+.horizontal-scroll-wrapper2::-webkit-scrollbar {
+    height: 8px;
+}
+
+.horizontal-scroll-wrapper2::-webkit-scrollbar-track {
+    background: #f5f5f5;
+    border-radius: 4px;
+}
+
+.horizontal-scroll-wrapper2::-webkit-scrollbar-thumb {
+    background-color: #007bff;
+    border-radius: 4px;
+}
+
+.tierList-container2 {
+    flex-shrink: 0;
+    width: auto;
+    min-width: 680px;
+    max-width: 800px;
+    padding: 15px;
+    background-color: #f5f5f5;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    margin-right: 10px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.tier-box2 {
+    min-height: 100px;
+    padding: 10px;
+    background-color: lightgray;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-x: visible;
+    flex-wrap: nowrap;
+    border-radius: 4px;
+}
+
+.tier-item2 {
+    padding: 10px;
     background-color: white;
     border: 1px solid #000;
     border-radius: 5px;
     margin-bottom: 5px;
     cursor: grab;
 }
+
+.tier2 {
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 2px solid #000;
+    border-radius: 5px;
+    min-width: 120px;
+    flex-shrink: 0;
+}
+
+.tier2 h3 {
+    margin: 0;
+    text-align: center;
+    padding-bottom: 5px;
+}
+
