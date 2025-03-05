@@ -1,7 +1,7 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth, createUserWithEmailAndPassword } from "./firebaseConfig";
+import { auth } from "./firebaseCOnfig"; // Keep your Firebase config import
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"; // Correct import
 import "./styles.css";
 
 function SignupPage() {
@@ -18,7 +18,7 @@ function SignupPage() {
         return regex.test(password);
     }
 
-    function handleSubmit(e) {
+    async function handleSubmit(e) {
         e.preventDefault();
 
         if (!validatePassword(formData.password)) {
@@ -26,27 +26,32 @@ function SignupPage() {
             return;
         }
 
-        createUserWithEmailAndPassword(auth, formData.email, formData.password)
-            .then(() => {
-                alert("Account created successfully!");
-                navigate("/login");
-            })
-            .catch((error) => setError(error.message));
-    }
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+            const user = userCredential.user;
 
+            // Set the display name for the user
+            await updateProfile(user, { displayName: formData.username });
+
+            alert("Account created successfully!");
+            navigate("/login"); // Redirect to login page
+        } catch (error) {
+            setError(error.message);
+        }
+    }
 
     return (
         <div className="container1">
             <h2>Create Account</h2>
             <form onSubmit={handleSubmit} className="form">
-                {/*  Username Input Field */}
+                {/* Username Input Field */}
                 <input type="text" name="username" placeholder="Username" value={formData.username} onChange={handleChange} required className="input" />
 
-                {/*  Email and Password Inputs */}
+                {/* Email and Password Inputs */}
                 <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} required className="input" />
                 <input type="password" name="password" placeholder="Password" value={formData.password} onChange={handleChange} required className="input" />
 
-                {/*  Error Display */}
+                {/* Error Display */}
                 {error && <p className="error">{error}</p>}
 
                 <button type="submit" className="btn">Sign Up</button>

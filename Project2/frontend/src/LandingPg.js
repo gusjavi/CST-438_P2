@@ -47,11 +47,7 @@ function LandingPg() {
     }, [isSignedIn]);
 
     const handleSignIn = () => {
-        localStorage.setItem("isSignedIn", "true");
-        localStorage.setItem("username", "BOB");
-        setUsername("BOB");
-        setSignedIn(true);
-        navigate("/tier");
+        navigate("/login");
     };
 
     const handleSignOut = () => {
