@@ -14,7 +14,6 @@ const initialTiers = {
 function TierListPage() {
     const navigate = useNavigate();
     const [tiers, setTiers] = useState(initialTiers);
-    const [input, setInput] = useState("");
     const [draggingItem, setDraggingItem] = useState(null);
     const [isSignedIn, setSignedIn] = useState(localStorage.getItem("isSignedIn") === "true");
     const [username, setUsername] = useState(localStorage.getItem("username") || "Guest");
@@ -23,13 +22,17 @@ function TierListPage() {
         localStorage.setItem("isSignedIn", isSignedIn);
     }, [isSignedIn]);
 
-    const handleAddItem = () => {
-        if (input.trim() !== "") {
-            setTiers((prev) => ({
-                ...prev,
-                storageBox: [...prev.storageBox, input]
-            }));
-            setInput("");
+    const handleAddItem = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setTiers((prev) => ({
+                    ...prev,
+                    storageBox: [...prev.storageBox, reader.result]
+                }));
+            };
+            reader.readAsDataURL(file);
         }
     };
 
@@ -94,7 +97,7 @@ function TierListPage() {
                                         draggable
                                         onDragStart={() => handleDragStart(tier, index)}
                                     >
-                                        {item}
+                                        <img src={item} alt="tier item" className="tier-image" />
                                     </div>
                                 ))}
                             </div>
@@ -111,7 +114,7 @@ function TierListPage() {
                                 draggable
                                 onDragStart={() => handleDragStart("storageBox", index)}
                             >
-                                {item}
+                                <img src={item} alt="tier item" className="tier-image" />
                             </div>
                         ))}
                     </div>
@@ -120,13 +123,11 @@ function TierListPage() {
 
             <div className="tier-input-wrapper">
                 <input
-                    type="text"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder="Enter an item..."
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAddItem}
                     className="tier-input"
                 />
-                <button className="tier-add-btn" onClick={handleAddItem}>Add</button>
             </div>
         </div>
     );

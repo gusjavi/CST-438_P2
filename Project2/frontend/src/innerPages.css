@@ -226,3 +226,8 @@ body {
     scrollbar-color: #555 #121212;
     flex-direction: column;
 }
+.tier-image{
+    height:  150px;
+    width: 150px;
+    object-fit: contain;
+}
