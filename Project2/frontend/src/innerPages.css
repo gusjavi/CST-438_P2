@@ -1,8 +1,106 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #f5f5f5;
+    background-color: #121212;
+    color: #ffffff;
     text-align: center;
+    margin: 0;
+    padding: 0;
 }
+
+.landing-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: auto;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #1e1e1e;
+    border-bottom: 2px solid #333;
+}
+
+.sign-out {
+    cursor: pointer;
+    color: #ff4d4d;
+}
+.sign-out:hover {
+    color: #ff6666;
+}
+
+.btn-group {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.btn {
+    padding: 10px 15px;
+    background-color: #333;
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn:hover {
+    background-color: #555;
+}
+
+.tier-list-wrapper {
+    display: flex;
+    gap: 20px;
+    padding: 20px 0;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #555 #121212;
+}
+
+.tier-list-container {
+    flex-shrink: 0;
+    min-width: 300px;
+    background-color: #1e1e1e;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(255, 255, 255, 0.1);
+}
+
+.tier-box {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+}
+
+.tier {
+    padding: 10px;
+    border-radius: 5px;
+    text-align: left;
+    font-weight: bold;
+}
+
+.tier-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.tier-item {
+    padding: 8px;
+    background-color: #333;
+    border-radius: 4px;
+    cursor: grab;
+}
+
+.tier.s { background-color: #ff4d4d; }
+.tier.a { background-color: #ff9933; }
+.tier.b { background-color: #ffcc33; }
+.tier.c { background-color: #99cc33; }
+.tier.d { background-color: #3399ff; }
 
 .container {
     display: flex;
@@ -15,7 +113,7 @@ body {
     margin-right: auto;
 }
 
-.container2 {
+.container2, .container3 {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -27,187 +125,104 @@ body {
 }
 
 .container3 {
-    display: flex;
     flex-direction: column;
-    align-items: center;
     justify-content: space-around;
-    margin-top: 50px;
-    width: fit-content;
-    margin-left: auto;
-    margin-right: auto;
 }
 
-.form {
+.tier-header {
+    padding: 20px;
+}
+
+.tier-username {
+    font-size: 24px;
+    color: #fff;
+}
+
+.tier-signout {
+    cursor: pointer;
+    color: #ff4d4d;
+}
+
+.tier-signout:hover {
+    color: #ff6666;
+}
+
+.tier-navigation {
     display: flex;
-    flex-direction: column;
-    width: 300px;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
 }
 
-.input {
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
-
-.btn {
-    padding: 10px;
-    background-color: #007bff;
-    color: white;
+.tier-btn {
+    padding: 8px 15px;
+    background-color: #333;
+    color: #fff;
     border: none;
     border-radius: 5px;
     cursor: pointer;
 }
 
-.btn:hover {
-    background-color: #0056b3;
+.tier-btn:hover {
+    background-color: #555;
 }
 
-.tierList-container {
-    width: 800px;
-    margin: auto;
-    text-align: center;
-}
-
-.input-section {
+.tier-input-wrapper {
     display: flex;
     justify-content: center;
     gap: 10px;
-    margin-bottom: 20px;
+    margin-top: 20px;
 }
 
-input {
+.tier-input {
     padding: 8px;
-    border: 1px solid #ccc;
+    background-color: #333;
+    color: #fff;
+    border: none;
     border-radius: 5px;
+    width: 60%;
 }
 
-.tier {
-    margin-bottom: 20px;
-    padding: 10px;
-    border: 2px solid #000;
+.tier-add-btn {
+    padding: 8px 15px;
+    background-color: #333;
+    color: #fff;
+    border: none;
     border-radius: 5px;
+    cursor: pointer;
 }
 
-.tier h2 {
-    margin: 0;
-    text-align: left;
+.tier-add-btn:hover {
+    background-color: #555;
 }
 
-.tier-box {
-    min-height: 100px;
-    padding: 10px;
-    background-color: lightgray;
+.tier-items-container {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: 10px;
-    justify-content: flex-start;
 }
 
-.tier-item {
-    padding: 10px;
-    background-color: white;
-    border: 1px solid #000;
-    border-radius: 5px;
-    margin-bottom: 5px;
-    cursor: grab;
-    height: 50px;
-    width: 50px;
-}
-
-.tier.S {
-    background-color: #ff4d4d;
-}
-
-.tier.A {
-    background-color: #ff9933;
-}
-
-.tier.B {
-    background-color: #ffcc33;
-}
-
-.tier.C {
-    background-color: #99cc33;
-}
-
-.tier.D {
-    background-color: #3399ff;
-}
-
-.horizontal-scroll-wrapper2 {
+.tier-section {
+    margin-top: 20px;
     display: flex;
-    overflow-x: auto;
+    flex-direction: column;
+    gap: 15px;
+    padding: 10px;
+    background-color: #1e1e1e;
+    border-radius: 8px;
+}
+
+.tier-label {
+    font-size: 18px;
+    color: #fff;
+}
+
+.tier-list-wrapper2 {
+    display: flex;
     gap: 20px;
     padding: 20px 0;
-    width: 100%;
-    max-width: 100%;
+    overflow-x: auto;
     scrollbar-width: thin;
-    scrollbar-color: #007bff #f5f5f5;
-}
-
-.horizontal-scroll-wrapper2::-webkit-scrollbar {
-    height: 8px;
-}
-
-.horizontal-scroll-wrapper2::-webkit-scrollbar-track {
-    background: #f5f5f5;
-    border-radius: 4px;
-}
-
-.horizontal-scroll-wrapper2::-webkit-scrollbar-thumb {
-    background-color: #007bff;
-    border-radius: 4px;
-}
-
-.tierList-container2 {
-    flex-shrink: 0;
-    width: auto;
-    min-width: 680px;
-    max-width: 800px;
-    padding: 15px;
-    background-color: #f5f5f5;
-    border: 2px solid #ccc;
-    border-radius: 8px;
-    margin-right: 10px;
-    display: flex;
+    scrollbar-color: #555 #121212;
     flex-direction: column;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
-
-.tier-box2 {
-    min-height: 100px;
-    padding: 10px;
-    background-color: lightgray;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    overflow-x: visible;
-    flex-wrap: nowrap;
-    border-radius: 4px;
-}
-
-.tier-item2 {
-    padding: 10px;
-    background-color: white;
-    border: 1px solid #000;
-    border-radius: 5px;
-    margin-bottom: 5px;
-    cursor: grab;
-}
-
-.tier2 {
-    margin-bottom: 10px;
-    padding: 10px;
-    border: 2px solid #000;
-    border-radius: 5px;
-    min-width: 120px;
-    flex-shrink: 0;
-}
-
-.tier2 h3 {
-    margin: 0;
-    text-align: center;
-    padding-bottom: 5px;
-}
-

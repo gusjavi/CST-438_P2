@@ -37,13 +37,14 @@ function EditPg() {
     };
 
     return (
-        <div>
-            <h1>Welcome to the Edit</h1>
-
-            <div className="container">
-                <button onClick={() => navigate("/")} className="btn">Go to Home</button>
-                <button onClick={() => navigate("/tier")} className="btn">Go to Tier</button>
-                <button onClick={handleSignOut} className="btn">Sign Out</button>
+        <div className="landing-container">
+            <div className="header">
+                <h1>Edit Account</h1>
+                {isSignedIn && <p onClick={handleSignOut} className="sign-out">Sign Out</p>}
+            </div>
+            <div className="btn-group">
+                <button onClick={() => navigate("/")} className="btn">Home</button>
+                <button onClick={() => navigate("/tier")} className="btn">Go to TierList</button>
             </div>
             <div className="container2">
             <form onSubmit={handleSubmit} className="form">
@@ -53,13 +54,9 @@ function EditPg() {
                 <button type="submit" className="btn">Update Profile</button>
             </form> {/* can pull the username and password here*/}
             </div>
-            <div className="container3">
-                <button onClick={() => deleteAccount()} className="btn">
-                    Delete Profile
-                </button>
-                <button onClick={() => deleteInfo()} className="btn">
-                    Delete Info
-                </button>
+            <div className="btn-group">
+                <button onClick={() => deleteAccount()} className="btn">Delete Profile</button>
+                <button onClick={() => deleteInfo()} className="btn">Delete Info</button>
             </div>
         </div>
 
