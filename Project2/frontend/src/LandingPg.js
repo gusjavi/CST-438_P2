@@ -63,14 +63,16 @@ function LandingPg() {
     };
 
     return (
-        <div>
-            <h1>Welcome to the Landing Page</h1>
-            <div className="container">
+        <div className="landing-container">
+            <div className="header">
+                <h1>Welcome {username}</h1>
+                {isSignedIn && <p onClick={handleSignOut} className="sign-out">Sign Out</p>}
+            </div>
+            <div className="btn-group">
                 {isSignedIn ? (
                     <>
                         <button onClick={() => navigate("/tier")} className="btn">Go to TierList</button>
                         <button onClick={() => navigate("/edit")} className="btn">Edit Account</button>
-                        <button onClick={handleSignOut} className="btn">Sign Out</button>
                     </>
                 ) : (
                     <>
@@ -79,19 +81,18 @@ function LandingPg() {
                     </>
                 )}
             </div>
-            <h2>Hello {username}!</h2>
-            <h2>Tier Lists of the Week!</h2>
-            <div className="horizontal-scroll-wrapper2">
+            <h2>Tier Lists of the Week</h2>
+            <div className="tier-list-wrapper">
                 {tierLists.map((tierList, index) => (
-                    <div key={index} className="tierList-container2">
+                    <div key={index} className="tier-list-container">
                         <h2>{tierList.name}</h2>
-                        <div className="tier-box2">
+                        <div className="tier-box">
                             {Object.keys(tierList.tiers).map((tier) => (
-                                <div key={tier} className={`tier ${tier}`}>
+                                <div key={tier} className={`tier ${tier.toLowerCase()}`}>
                                     <h3>{tier} Tier</h3>
-                                    <div className="tier-box">
+                                    <div className="tier-items">
                                         {tierList.tiers[tier].map((item, itemIndex) => (
-                                            <div key={itemIndex} className="tier-item2">
+                                            <div key={itemIndex} className="tier-item">
                                                 {item}
                                             </div>
                                         ))}

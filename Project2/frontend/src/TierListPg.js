@@ -8,10 +8,10 @@ const initialTiers = {
     B: [],
     C: [],
     D: [],
-    StoreBx:[]
+    storageBox: []
 };
 
-function TierListPg() {
+function TierListPage() {
     const navigate = useNavigate();
     const [tiers, setTiers] = useState(initialTiers);
     const [input, setInput] = useState("");
@@ -27,7 +27,7 @@ function TierListPg() {
         if (input.trim() !== "") {
             setTiers((prev) => ({
                 ...prev,
-                StoreBx: [...prev.StoreBx, input] // Add to StoreBx
+                storageBox: [...prev.storageBox, input]
             }));
             setInput("");
         }
@@ -65,52 +65,71 @@ function TierListPg() {
     };
 
     return (
-        <div>
-            <h1>Welcome to the Tier List Page</h1>
-            <div className="container">
-                <button onClick={() => navigate("/")} className="btn">Go to Home</button>
+        <div className="landing-container">
+            <div className="header">
+                <h1>{username}'s Tier List</h1>
+                {isSignedIn && <p onClick={handleSignOut} className="sign-out">Sign Out</p>}
+            </div>
+            <div className="btn-group">
+                <button onClick={() => navigate("/")} className="btn">Home</button>
                 <button onClick={() => navigate("/edit")} className="btn">Edit Account</button>
-                <button onClick={handleSignOut} className="btn">Sign Out</button>
             </div>
 
-            <h2>Hello {username}!</h2>
-            <div className="tierList-container">
-                <h1>Tier List</h1>
-                <div className="input-section">
-                    <input
-                        type="text"
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        placeholder="Enter an item..."
-                    />
-                    <button className="btn" onClick={handleAddItem}>Add</button>{/*for now its input by user, later will change*/}
-                </div>
-
+            <h2>Tier List</h2>
+            <div className="tier-list-wrapper2">
                 {Object.keys(tiers).map((tier) => (
-                    <div
-                        key={tier}
-                        className={`tier ${tier}`} // Dynamically assign the tier class
-                        onDragOver={handleDragOver}
-                        onDrop={() => handleDrop(tier)}
-                    >
-                        <h2>{tier}-Tier</h2>
-                        <div className="tier-box">
-                            {tiers[tier].map((item, index) => (
-                                <div
-                                    key={`${tier}-${index}`}
-                                    className="tier-item"
-                                    draggable
-                                    onDragStart={() => handleDragStart(tier, index)}
-                                >
-                                    {item}
-                                </div>
-                            ))}
+                    tier !== 'storageBox' && (
+                        <div
+                            key={tier}
+                            className={`tier ${tier.toLowerCase()}`}
+                            onDragOver={handleDragOver}
+                            onDrop={() => handleDrop(tier)}
+                        >
+                            <h3>{tier} Tier</h3>
+                            <div className="tier-items">
+                                {tiers[tier].map((item, index) => (
+                                    <div
+                                        key={`${tier}-${index}`}
+                                        className="tier-item"
+                                        draggable
+                                        onDragStart={() => handleDragStart(tier, index)}
+                                    >
+                                        {item}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    )
                 ))}
+                <div className="tier storageBox">
+                    <h3>Storage Box</h3>
+                    <div className="tier-items">
+                        {tiers.storageBox.map((item, index) => (
+                            <div
+                                key={`storageBox-${index}`}
+                                className="tier-item"
+                                draggable
+                                onDragStart={() => handleDragStart("storageBox", index)}
+                            >
+                                {item}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            <div className="tier-input-wrapper">
+                <input
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="Enter an item..."
+                    className="tier-input"
+                />
+                <button className="tier-add-btn" onClick={handleAddItem}>Add</button>
             </div>
         </div>
     );
 }
 
-export default TierListPg;
+export default TierListPage;
