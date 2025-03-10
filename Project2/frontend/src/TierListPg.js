@@ -49,14 +49,33 @@ function TierListPage() {
 
         const { tier: oldTier, index } = draggingItem;
 
-        if (oldTier !== newTier) {
-            const newTiers = { ...tiers };
-            const itemToMove = newTiers[oldTier].splice(index, 1)[0];
-            newTiers[newTier].push(itemToMove);
-            setTiers(newTiers);
-        }
+        setTiers((prev) => {
+            const newTiers = { ...prev };
+            const [itemToMove] = newTiers[oldTier].splice(index, 1);
 
+            if (itemToMove) {
+                newTiers[newTier].push(itemToMove);
+            }
+
+            return { ...newTiers };
+        });
         setDraggingItem(null);
+    };
+
+    const handleDropFile = (event) => {
+        event.preventDefault();
+        const files = event.dataTransfer.files;
+        if (files.length > 0) {
+            const file = files[0];
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setTiers((prev) => ({
+                    ...prev,
+                    storageBox: [...prev.storageBox, reader.result]
+                }));
+            };
+            reader.readAsDataURL(file);
+        }
     };
 
     const handleSignOut = () => {
@@ -77,7 +96,6 @@ function TierListPage() {
                 <button onClick={() => navigate("/")} className="btn">Home</button>
                 <button onClick={() => navigate("/edit")} className="btn">Edit Account</button>
             </div>
-
             <h2>Tier List</h2>
             <div className="tier-list-wrapper2">
                 {Object.keys(tiers).map((tier) => (
@@ -104,9 +122,10 @@ function TierListPage() {
                         </div>
                     )
                 ))}
-                <div className="tier storageBox">
+                <div className="tier storageBox" onDragOver={handleDragOver} onDrop={handleDropFile}>
                     <h3>Storage Box</h3>
                     <div className="tier-items">
+                        {tiers.storageBox.length === 0 && <p className="drag-placeholder">Drag images here</p>}
                         {tiers.storageBox.map((item, index) => (
                             <div
                                 key={`storageBox-${index}`}
