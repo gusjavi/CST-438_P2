@@ -17,19 +17,27 @@ function TierListPage() {
     const [draggingItem, setDraggingItem] = useState(null);
     const [isSignedIn, setSignedIn] = useState(localStorage.getItem("isSignedIn") === "true");
     const [username, setUsername] = useState(localStorage.getItem("username") || "Guest");
+    const [isPublic, setIsPublic] = useState(localStorage.getItem("isPublic") === "true");
 
     useEffect(() => {
         localStorage.setItem("isSignedIn", isSignedIn);
-    }, [isSignedIn]);
+        localStorage.setItem("isPublic", isPublic);
+    }, [isSignedIn, isPublic]);
+
+    const togglePrivacy = () => {
+        setIsPublic((prev) => !prev);
+    };
 
     const handleAddItem = (event) => {
         const file = event.target.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
-                setTiers((prev) => ({
-                    ...prev,
-                    storageBox: [...prev.storageBox, reader.result]
+                const newItem = { image: reader.result, text: file.name };
+
+                setTiers((prevTiers) => ({
+                    ...prevTiers,
+                    storageBox: [...prevTiers.storageBox, newItem],
                 }));
             };
             reader.readAsDataURL(file);
@@ -37,45 +45,50 @@ function TierListPage() {
     };
 
     const handleDragStart = (tier, index) => {
-        setDraggingItem({ tier, index });
+        setDraggingItem({ tier, index, item: tiers[tier][index] });
     };
 
     const handleDragOver = (e) => {
         e.preventDefault();
     };
 
-    const handleDrop = (newTier) => {
+    const handleDrop = (newTier, e) => {
+        e.preventDefault();
         if (!draggingItem) return;
-
-        const { tier: oldTier, index } = draggingItem;
-
-        setTiers((prev) => {
-            const newTiers = { ...prev };
-            const [itemToMove] = newTiers[oldTier].splice(index, 1);
-
-            if (itemToMove) {
-                newTiers[newTier].push(itemToMove);
-            }
-
-            return { ...newTiers };
+        const { tier: oldTier, index, item } = draggingItem;
+        setTiers((prevTiers) => {
+            const newTiers = { ...prevTiers };
+            newTiers[oldTier] = newTiers[oldTier].filter((_, i) => i !== index);
+            newTiers[newTier] = [...newTiers[newTier], item];
+            return newTiers;
         });
         setDraggingItem(null);
     };
 
     const handleDropFile = (event) => {
         event.preventDefault();
-        const files = event.dataTransfer.files;
-        if (files.length > 0) {
-            const file = files[0];
+        const file = event.dataTransfer.files[0];
+
+        if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
-                setTiers((prev) => ({
-                    ...prev,
-                    storageBox: [...prev.storageBox, reader.result]
+                const newItem = { image: reader.result, text: file.name };
+
+                setTiers((prevTiers) => ({
+                    ...prevTiers,
+                    storageBox: [...prevTiers.storageBox, newItem],
                 }));
             };
             reader.readAsDataURL(file);
         }
+    };
+
+    const handleEditItemText = (tier, index, newText) => {
+        setTiers((prevTiers) => {
+            const newTiers = { ...prevTiers };
+            newTiers[tier][index].text = newText;
+            return { ...newTiers };
+        });
     };
 
     const handleSignOut = () => {
@@ -96,7 +109,14 @@ function TierListPage() {
                 <button onClick={() => navigate("/")} className="btn">Home</button>
                 <button onClick={() => navigate("/edit")} className="btn">Edit Account</button>
             </div>
-            <h2>Tier List</h2>
+            <input type="text" placeholder="Tier List" className="tier-input" />
+            <div className="privacy-toggle">
+                <label className="switch">
+                    <input type="checkbox" checked={isPublic} onChange={togglePrivacy} />
+                    <span className="slider"></span>
+                </label>
+                <span className="privacy-label">{isPublic ? "Public" : "Private"}</span>
+            </div>
             <div className="tier-list-wrapper2">
                 {Object.keys(tiers).map((tier) => (
                     tier !== 'storageBox' && (
@@ -104,7 +124,7 @@ function TierListPage() {
                             key={tier}
                             className={`tier ${tier.toLowerCase()}`}
                             onDragOver={handleDragOver}
-                            onDrop={() => handleDrop(tier)}
+                            onDrop={(e) => handleDrop(tier, e)}
                         >
                             <h3>{tier} Tier</h3>
                             <div className="tier-items">
@@ -115,7 +135,13 @@ function TierListPage() {
                                         draggable
                                         onDragStart={() => handleDragStart(tier, index)}
                                     >
-                                        <img src={item} alt="tier item" className="tier-image" />
+                                        <img src={item.image} alt="tier item" className="tier-image" />
+                                        <input
+                                            type="text"
+                                            value={item.text}
+                                            onChange={(e) => handleEditItemText(tier, index, e.target.value)}
+                                            className="editable-text"
+                                        />
                                     </div>
                                 ))}
                             </div>
@@ -133,7 +159,13 @@ function TierListPage() {
                                 draggable
                                 onDragStart={() => handleDragStart("storageBox", index)}
                             >
-                                <img src={item} alt="tier item" className="tier-image" />
+                                <img src={item.image} alt="tier item" className="tier-image" />
+                                <input
+                                    type="text"
+                                    value={item.text}
+                                    onChange={(e) => handleEditItemText("storageBox", index, e.target.value)}
+                                    className="editable-text"
+                                />
                             </div>
                         ))}
                     </div>
