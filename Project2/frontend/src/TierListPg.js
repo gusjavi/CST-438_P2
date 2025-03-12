@@ -8,6 +8,7 @@ const initialTiers = {
     B: [],
     C: [],
     D: [],
+    F:[],
     storageBox: []
 };
 
@@ -98,7 +99,7 @@ function TierListPage() {
         setSignedIn(false);
         navigate("/");
     };
-
+    const  submitTierList=()=>{}
     return (
         <div className="landing-container">
             <div className="header">
@@ -179,6 +180,9 @@ function TierListPage() {
                     onChange={handleAddItem}
                     className="tier-input"
                 />
+            </div>
+            <div>
+                <button className="btn" onClick={() => submitTierList()}>Create Tier-List</button>
             </div>
         </div>
     );

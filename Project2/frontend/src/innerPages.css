@@ -101,6 +101,8 @@ body {
 .tier.b { background-color: #ffcc33; }
 .tier.c { background-color: #99cc33; }
 .tier.d { background-color: #3399ff; }
+.tier.f { background-color: #b38920; }
+
 
 .container {
     display: flex;
@@ -374,5 +376,8 @@ input:checked + .slider:before {
 
 .close-btn:hover {
     background-color: darkred;
+}
+.error_notl{
+    color: red;
 }
 
