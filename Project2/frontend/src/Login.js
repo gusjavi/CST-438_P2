@@ -10,6 +10,7 @@ function LoginPage() {
     const [username, setUsername] = useState(localStorage.getItem("username") || "Guest");
     const [formData, setFormData] = useState({ email: "", password: "" });
     const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
 
     function handleChange(e) {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -20,20 +21,29 @@ function LoginPage() {
         console.log("Logging in with:", formData.email, formData.password);
 
         try {
-            const userCredential = await signInWithEmailAndPassword(auth, formData.email, formData.password);
-            const user = userCredential.user;
-            console.log("Login Success:", user);
-
-            // Update state & localStorage
-            setUsername(user.displayName || formData.email);
-            setSignedIn(true);
-            localStorage.setItem("username", user.displayName || formData.email);
-            localStorage.setItem("isSignedIn", "true");
-
-            navigate("/"); // Redirect to landing page
-        } catch (error) {
-            console.error("Login Error:", error.code, error.message);
-            setError(error.message);
+            const response = await fetch("http://localhost:8080/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email: formData.email,
+                    password: formData.password
+                })
+            });
+            const data = await response.json();
+            if (data.success) {
+                localStorage.setItem("authToken", data.data);
+                localStorage.setItem("isSignedIn", "true");
+                localStorage.setItem("username", data.username);
+                alert("Login successful!");
+                navigate("/");
+            } else {
+                setError(data.error || "Login failed. Check your credentials.");
+            }
+        } catch (err) {
+            console.error("Login Error:", err);
+            setError("Server error. Please try again later.");
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -42,20 +52,33 @@ function LoginPage() {
         const provider = new GoogleAuthProvider();
         try {
             const result = await signInWithPopup(auth, provider);
-            const user = result.user;
-            console.log("Google Login Success:", user);
 
-            // Update state & localStorage
-            setUsername(user.displayName || "Guest");
-            setSignedIn(true);
-            localStorage.setItem("username", user.displayName || "Guest");
-            localStorage.setItem("isSignedIn", "true");
+            // On success, get the ID token from Firebase
+            const idToken = await result.user.getIdToken();
+            const displayName = result.user.displayName;
 
-            alert(`Welcome ${user.displayName || "Guest"}!`);
-            navigate("/");
-        } catch (error) {
-            console.error("Google login failed:", error.message);
-            setError("Google login failed: " + error.message);
+            // Send that ID token to your backend for verification
+            const res = await fetch("http://localhost:8080/api/auth/google-verify", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ token: idToken })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                localStorage.setItem("authToken", data.data);
+                localStorage.setItem("isSignedIn", "true");
+                localStorage.setItem("username", displayName || data.username || "User");
+                alert("Google login successful!");
+                navigate("/");
+            } else {
+                setError(data.error || "Google sign-in failed on server side.");
+            }
+        } catch (err) {
+            console.error("Google login error:", err);
+            setError("Failed to sign in with Google. Please try again.");
+        } finally {
+            setLoading(false);
         }
     }
 

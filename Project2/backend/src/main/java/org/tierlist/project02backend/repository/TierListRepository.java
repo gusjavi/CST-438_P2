@@ -8,7 +8,11 @@ import org.springframework.data.repository.query.Param;
 import org.tierlist.project02backend.model.TierList;
 import java.util.List;
 
+import java.util.List;
+
 public interface TierListRepository extends JpaRepository<TierList, Long> {
+
+    List<TierList> findByCreatorUserId(String userId);
 
     // method to filter by category
     Page<TierList> findByCategory(String category, Pageable pageable);
