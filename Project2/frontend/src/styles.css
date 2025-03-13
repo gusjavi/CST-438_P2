@@ -33,23 +33,7 @@ body {
     cursor: pointer;
   }
 
-.google-btn {
-  background-color: #db4437; /* Google Red */
-  color: white;
-  font-size: 16px;
-  padding: 10px;
-  border: none;
-  cursor: pointer;
-  width: 100%;
-  margin-top: 10px;
-  border-radius: 5px;
-}
-
-.google-btn:hover {
-  background-color: #c1351d;
-}
-
-.btn:hover {
+  .btn:hover {
     background-color: #0056b3;
   }
 
@@ -63,3 +47,4 @@ body {
     cursor: pointer;
     text-decoration: underline;
   }
+  
