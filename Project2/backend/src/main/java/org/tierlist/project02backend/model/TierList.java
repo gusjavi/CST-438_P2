@@ -18,6 +18,9 @@ public class TierList {
     @Column(length = 1024)
     private String description;
 
+    @Column(name = "category")
+    private String category;
+
     @Column(name = "is_public", nullable = false)
     private boolean isPublic = true;
 
