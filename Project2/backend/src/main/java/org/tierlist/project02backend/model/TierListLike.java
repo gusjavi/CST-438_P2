@@ -16,12 +16,10 @@ public class TierListLike {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    // Many likes belong to one user
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // Many likes belong to one TierList
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tier_list_id", nullable = false)
     private TierList tierList;
@@ -36,7 +34,6 @@ public class TierListLike {
         this.createdAt = LocalDateTime.now();
     }
 
-    // Getters and setters
     public Long getId() {
         return id;
     }

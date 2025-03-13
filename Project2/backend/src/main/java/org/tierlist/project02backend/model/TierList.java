@@ -9,7 +9,7 @@ public class TierList {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "tier_list_id")
+    @Column(name = "id")
     private Long id;
 
     @Column(nullable = false)
