@@ -12,6 +12,8 @@ function LoginPage() {
     const [formData, setFormData] = useState({ email: "", password: "" });
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const [isSignedIn, setSignedIn] = useState(localStorage.getItem("isSignedIn") === "true");
+    const [username, setUsername] = useState(localStorage.getItem("username") || "Guest");
 
 
     function handleChange(e) {
@@ -35,6 +37,8 @@ function LoginPage() {
             const data = await response.json();
             if (data.success) {
                 localStorage.setItem("authToken", data.data);
+                localStorage.setItem("isSignedIn", "true");
+                localStorage.setItem("username", data.username);
                 alert("Login successful!");
                 navigate("/");
             } else {
@@ -60,6 +64,7 @@ function LoginPage() {
             const result = await signInWithPopup(auth, provider);
             // On success, get the ID token from Firebase
             const idToken = await result.user.getIdToken();
+            const displayName = result.user.displayName;
 
             // Send that ID token to your backend for verification
             const res = await fetch("http://localhost:8080/api/auth/google-verify", {
@@ -71,6 +76,8 @@ function LoginPage() {
 
             if (data.success) {
                 localStorage.setItem("authToken", data.data);
+                localStorage.setItem("isSignedIn", "true");
+                localStorage.setItem("username", displayName || data.username || "User");
                 alert("Google login successful!");
                 navigate("/");
             } else {
