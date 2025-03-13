@@ -30,6 +30,11 @@ public class TierList {
     // Many TierLists can be created by one User (optional, if you want to track creator)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+
+    // not sure about this, needs testing tbh
+    @OneToMany(mappedBy = "tierList", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<TierListLike> likes;
+    
     private User creator;
 
     public TierList() {
