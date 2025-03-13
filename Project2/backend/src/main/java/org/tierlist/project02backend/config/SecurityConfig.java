@@ -2,30 +2,45 @@ package org.tierlist.project02backend.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
         http
-                .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // Authorization rules
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/login", "/signup", "/public/**").permitAll() // Allow these routes
-                        .requestMatchers("/api/**").authenticated() // Protect API endpoints
+                        // Allow anyone (no authentication) to access your auth endpoints
+                        .requestMatchers("/api/auth/**").permitAll()
+                        // All other requests require authentication
+                        .anyRequest().authenticated()
                 )
-                .oauth2Login(oauth2 -> oauth2 // Enable OAuth2 login
-                        .defaultSuccessUrl("/api/user", true) //
-                );
+
+
+                .csrf(csrf -> csrf.disable())
+
+                // You can enable basic authentication or form login
+                .httpBasic(Customizer.withDefaults());
+
 
         return http.build();
     }
+    @Bean
+    public InMemoryUserDetailsManager userDetailsService() {
+        UserDetails admin = User.withDefaultPasswordEncoder()
+                .username("admin")
+                .password("admin123")
+                .roles("ADMIN")
+                .build();
+        return new InMemoryUserDetailsManager(admin);
+    }
+
 }
-
-
-
