@@ -18,17 +18,6 @@ target/
 *.iws
 *.iml
 *.ipr
-# Ignore service account JSON in the backend
-firebase-service-account.json
-
-FirebaseConfigController.java
-
-
-# Ignore all .env files in the frontend
-.env
-.env.local
-.env.production
-
 
 ### NetBeans ###
 /nbproject/private/
@@ -42,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Environment Variables
+.env
+

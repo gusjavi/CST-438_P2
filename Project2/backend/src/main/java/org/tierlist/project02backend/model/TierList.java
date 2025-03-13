@@ -18,6 +18,9 @@ public class TierList {
     @Column(length = 1024)
     private String description;
 
+    @Column(name = "category")
+    private String category;
+
     @Column(name = "is_public", nullable = false)
     private boolean isPublic = true;
 
@@ -27,6 +30,11 @@ public class TierList {
     // Many TierLists can be created by one User (optional, if you want to track creator)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+
+    // not sure about this, needs testing tbh
+    @OneToMany(mappedBy = "tierList", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<TierListLike> likes;
+    
     private User creator;
 
     public TierList() {
@@ -60,6 +68,14 @@ public class TierList {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public boolean isPublic() {

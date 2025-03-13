@@ -1,20 +1,16 @@
+import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from "firebase/auth";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { auth } from "./firebaseCOnfig";
 import "./styles.css";
-import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { auth } from "./FirebaseConfig";
-
-
-
 
 function LoginPage() {
     const navigate = useNavigate();
+    const [isSignedIn, setSignedIn] = useState(localStorage.getItem("isSignedIn") === "true");
+    const [username, setUsername] = useState(localStorage.getItem("username") || "Guest");
     const [formData, setFormData] = useState({ email: "", password: "" });
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
-    const [isSignedIn, setSignedIn] = useState(localStorage.getItem("isSignedIn") === "true");
-    const [username, setUsername] = useState(localStorage.getItem("username") || "Guest");
-
 
     function handleChange(e) {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -22,8 +18,7 @@ function LoginPage() {
 
     async function handleSubmit(e) {
         e.preventDefault();
-        setLoading(true);
-        setError("");
+        console.log("Logging in with:", formData.email, formData.password);
 
         try {
             const response = await fetch("http://localhost:8080/api/auth/login", {
@@ -52,16 +47,12 @@ function LoginPage() {
         }
     }
 
-
-
-
+    // Google Sign-In Function
     async function handleGoogleLogin() {
-        setLoading(true);
-        setError("");
-
+        const provider = new GoogleAuthProvider();
         try {
-            const provider = new GoogleAuthProvider();
             const result = await signInWithPopup(auth, provider);
+
             // On success, get the ID token from Firebase
             const idToken = await result.user.getIdToken();
             const displayName = result.user.displayName;
@@ -91,57 +82,25 @@ function LoginPage() {
         }
     }
 
-
-
     return (
         <div className="container1">
-            <h2>Login</h2>
-
-            {/* Apply the "form" class to match your CSS */}
+            <h2>Log in</h2>
             <form onSubmit={handleSubmit} className="form">
-                {/* Each input uses className="input" */}
-                <input
-                    type="email"
-                    name="email"
-                    placeholder="Email"
-                    className="input"
-                    value={formData.email}
-                    onChange={handleChange}
-                    disabled={loading}
-                    required
-                />
-                <input
-                    type="password"
-                    name="password"
-                    placeholder="Password"
-                    className="input"
-                    value={formData.password}
-                    onChange={handleChange}
-                    disabled={loading}
-                    required
-                />
+                <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} required className="input" />
 
-                {/* Error message */}
+                <input type="password" name="password" placeholder="Password" value={formData.password} onChange={handleChange} required className="input" />
+
                 {error && <p className="error">{error}</p>}
-
-                {/* Button uses className="btn" */}
-                <button type="submit" disabled={loading} className="btn">
-                    {loading ? "Logging in..." : "Login"}
-                </button>
+                <button type="submit" className="btn">Log in</button>
             </form>
 
-            <hr />
-
-            {/*  Google Sign-In Button */}
+            {/* Google Sign-In Button */}
             <button onClick={handleGoogleLogin} className="btn google-btn">
                 Sign in with Google
             </button>
 
             <p>
-                Don't have an account?{" "}
-                <span className="link" onClick={() => navigate("/signup")}>
-          Sign Up
-        </span>
+                Don't have an account? <span className="link" onClick={() => navigate("/signup")}>Sign up</span>
             </p>
         </div>
     );
