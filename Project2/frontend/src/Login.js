@@ -19,6 +19,7 @@ function LoginPage() {
     async function handleSubmit(e) {
         e.preventDefault();
         console.log("Logging in with:", formData.email, formData.password);
+        setLoading(true);
 
         try {
             const response = await fetch("http://localhost:8080/api/auth/login", {
@@ -31,9 +32,25 @@ function LoginPage() {
             });
             const data = await response.json();
             if (data.success) {
+                console.log("Login Successful", data);
                 localStorage.setItem("authToken", data.data);
                 localStorage.setItem("isSignedIn", "true");
-                localStorage.setItem("username", data.username);
+
+                if (data.username) {
+                    localStorage.setItem("username", data.username);
+                } else {
+
+                    try {
+                        const userCredential = await signInWithEmailAndPassword(auth, formData.email, formData.password);
+                        const displayName = userCredential.user.displayName;
+                        if (displayName) {
+                            localStorage.setItem("username", displayName);
+                        }
+                    } catch (firebaseError) {
+                        console.warn("Couldn't get username from Firebase:", firebaseError);
+                    }
+                }
+
                 alert("Login successful!");
                 navigate("/");
             } else {
@@ -47,17 +64,13 @@ function LoginPage() {
         }
     }
 
-    // Google Sign-In Function
     async function handleGoogleLogin() {
+        setLoading(true);
         const provider = new GoogleAuthProvider();
         try {
             const result = await signInWithPopup(auth, provider);
-
-            // On success, get the ID token from Firebase
             const idToken = await result.user.getIdToken();
             const displayName = result.user.displayName;
-
-            // Send that ID token to your backend for verification
             const res = await fetch("http://localhost:8080/api/auth/google-verify", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -68,7 +81,14 @@ function LoginPage() {
             if (data.success) {
                 localStorage.setItem("authToken", data.data);
                 localStorage.setItem("isSignedIn", "true");
-                localStorage.setItem("username", displayName || data.username || "User");
+                if (displayName) {
+                    localStorage.setItem("username", displayName);
+                } else if (data.username) {
+                    localStorage.setItem("username", data.username);
+                } else {
+                    localStorage.setItem("username", "User");
+                }
+
                 alert("Google login successful!");
                 navigate("/");
             } else {
@@ -91,12 +111,12 @@ function LoginPage() {
                 <input type="password" name="password" placeholder="Password" value={formData.password} onChange={handleChange} required className="input" />
 
                 {error && <p className="error">{error}</p>}
-                <button type="submit" className="btn">Log in</button>
+                <button type="submit" className="btn" disabled={loading}>
+                    {loading ? "Logging in..." : "Log in"}
+                </button>
             </form>
-
-            {/* Google Sign-In Button */}
-            <button onClick={handleGoogleLogin} className="btn google-btn">
-                Sign in with Google
+            <button onClick={handleGoogleLogin} className="btn google-btn" disabled={loading}>
+                {loading ? "Processing..." : "Sign in with Google"}
             </button>
 
             <p>
