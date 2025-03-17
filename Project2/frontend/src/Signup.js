@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth } from "./firebaseCOnfig";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import "./styles.css";
 
@@ -30,7 +29,7 @@ function SignupPage() {
         }
 
         try {
-            const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+            const userCredential = await createUserWithEmailAndPassword( formData.email, formData.password);
             const user = userCredential.user;
 
             await updateProfile(user, { displayName: formData.username });
