@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { auth } from "./firebaseCOnfig";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import "./styles.css";
 
@@ -29,11 +30,14 @@ function SignupPage() {
         }
 
         try {
-            const userCredential = await createUserWithEmailAndPassword( formData.email, formData.password);
+            const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
             const user = userCredential.user;
-
+            console.log("Created user", formData);
+            console.log("user", user.uid);
+            const uid = user.uid;
             await updateProfile(user, { displayName: formData.username });
             const idToken = await user.getIdToken();
+            console.log("Created ", idToken);
             const response = await fetch('http://localhost:8080/api/auth/save-user', {
                 method: 'POST',
                 headers: {
@@ -42,7 +46,8 @@ function SignupPage() {
                 },
                 body: JSON.stringify({
                     username: formData.username,
-                    email: formData.email
+                    email: formData.email,
+                    uid: uid
                 })
             });
 

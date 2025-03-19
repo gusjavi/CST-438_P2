@@ -1,6 +1,7 @@
 import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from "firebase/auth";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { auth } from "./firebaseCOnfig";
 import "./styles.css";
 
 function LoginPage() {
@@ -34,8 +35,20 @@ function LoginPage() {
                 console.log("Login Successful", data);
                 localStorage.setItem("authToken", data.data);
                 localStorage.setItem("isSignedIn", "true");
-
-
+                if (data.username) {
+                    localStorage.setItem("username", data.username);
+                } else {
+                    try {
+                        const userCredential = await signInWithEmailAndPassword(auth, formData.email, formData.password);
+                        const displayName = userCredential.user.displayName;
+                        console.log(userCredential);
+                        if (displayName) {
+                            localStorage.setItem("username", displayName);
+                        }
+                    } catch (firebaseError) {
+                        console.warn("Couldn't get username from Firebase:", firebaseError);
+                    }
+                }
 
                 alert("Login successful!");
                 navigate("/");
@@ -50,11 +63,13 @@ function LoginPage() {
         }
     }
 
+    // Google Sign-In Function
     async function handleGoogleLogin() {
         setLoading(true);
         const provider = new GoogleAuthProvider();
         try {
-            const result = await signInWithPopup( provider);
+            const result = await signInWithPopup(auth, provider);
+
             const idToken = await result.user.getIdToken();
             const displayName = result.user.displayName;
             const res = await fetch("http://localhost:8080/api/auth/google-verify", {
@@ -101,6 +116,7 @@ function LoginPage() {
                     {loading ? "Logging in..." : "Log in"}
                 </button>
             </form>
+
             <button onClick={handleGoogleLogin} className="btn google-btn" disabled={loading}>
                 {loading ? "Processing..." : "Sign in with Google"}
             </button>

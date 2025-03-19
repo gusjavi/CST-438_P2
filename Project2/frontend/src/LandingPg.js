@@ -65,6 +65,7 @@ function LandingPg() {
                         return {
                             id: list.id,
                             name: list.title,
+                            creator: list.user_id,
                             description: list.description,
                             tiers: { S: [], A: [], B: [], C: [], D: [], F: [] },
                             likes: 0

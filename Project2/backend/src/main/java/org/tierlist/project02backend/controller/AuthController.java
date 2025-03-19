@@ -108,10 +108,11 @@ public class AuthController {
 
             // Verify the Firebase token and get user info
             UserRecord userRecord = authService.verifyToken(idToken);
-            String uid = userRecord.getUid();
+            String uid = userRecord.getUid();  // This is the trusted UID
 
-            // Create and save user to database
-            User user = new User(uid, request.getUsername(), request.getEmail());
+            // Create and save user to database - use the UID from the token
+            User user = new User(request.getUid(), request.getUsername(), request.getEmail());
+
             userRepository.save(user);
 
             // Include username in response
