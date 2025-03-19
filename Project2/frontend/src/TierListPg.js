@@ -135,7 +135,7 @@ function TierListPage() {
 
             // Get userId from localStorage
             const userId = localStorage.getItem("userId");
-            console.log(userId);
+            console.log("userid",userId);
 
             if (!userId) {
                 throw new Error("User ID not found. Please sign in again.");
@@ -147,7 +147,9 @@ function TierListPage() {
                 description: `${username}'s tier list for ${tierListTitle}`,
                 isPublic: isPublic,
                 category: "General",
-                creatorUserId: userId  // Changed from nested object to match backend model
+                creator: {
+                    userId: userId
+                }
             };
 
             // Submit tier list first to get the ID

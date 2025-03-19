@@ -1,35 +1,60 @@
 package org.tierlist.project02backend.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.tierlist.project02backend.model.*;
 import org.tierlist.project02backend.model.TierList;
-import org.tierlist.project02backend.service.AISearchService;
+//import org.tierlist.project02backend.service.AISearchService;
 import org.tierlist.project02backend.service.TierListService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/tierlists")
 public class TierListController {
+    private static final Logger logger = LoggerFactory.getLogger(TierListController.class);
 
     private final TierListService tierListService;
-    private final AISearchService aiSearchService;
+//    private final AISearchService aiSearchService;
 
-    public TierListController(TierListService tierListService, AISearchService aiSearchService) {
+    public TierListController(TierListService tierListService) {
         this.tierListService = tierListService;
-        this.aiSearchService = aiSearchService;
     }
+//    public TierListController(TierListService tierListService, AISearchService aiSearchService) {
+//        this.tierListService = tierListService;
+//        this.aiSearchService = aiSearchService;
+//    }
 
     @PostMapping
     public TierList createTierList(@RequestBody TierList tierList) {
         return tierListService.createTierList(tierList);
     }
 
-    // OG endpoint to return all tier lists
+    // Updated error handling for public tier lists endpoint
     @GetMapping
-    public List<TierList> getTierLists() {
+    public ResponseEntity<?> getTierLists() {
+        try {
+            List<TierList> tierLists = tierListService.getAllPublicTierLists();
+            return ResponseEntity.ok(tierLists);
+        } catch (Exception e) {
+            // Log the exception with more details
+            logger.error("Error fetching public tier lists: ", e);
+            // Return proper error response
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to retrieve tier lists",
+                            "message", e.getMessage()));
+        }
+    }
+
+    // You might want to keep the original method with a different endpoint name
+    @GetMapping("/all")
+    public List<TierList> getAllTierLists() {
         return tierListService.getAllTierLists();
     }
 
@@ -88,22 +113,21 @@ public class TierListController {
     public List<TierList> getUserTierLists(@PathVariable String userId) {
         return tierListService.getTierListsByUser(userId);
     }
-    
-    // New endpoint for paginated, sorted, and filtered tier lists
-    @GetMapping("/paginated")
-    public ResponseEntity<?> getPaginatedTierLists(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(required = false) String sortBy,
-            @RequestParam(required = false) String category) {
-        // This method delegates to our service layer which should return a Page<TierList>
-        return ResponseEntity.ok(tierListService.getTierLists(page, size, sortBy, category));
-    }
-    
-    // New endpoint for AI-powered search TODO, just a place holder for now
-    @GetMapping("/search")
-    public ResponseEntity<?> searchTierLists(@RequestParam String query) {
-        return ResponseEntity.ok(aiSearchService.searchTierLists(query));
-    }
-}
 
+    // New endpoint for paginated, sorted, and filtered tier lists
+//    @GetMapping("/paginated")
+//    public ResponseEntity<?> getPaginatedTierLists(
+//            @RequestParam(defaultValue = "0") int page,
+//            @RequestParam(defaultValue = "20") int size,
+//            @RequestParam(required = false) String sortBy,
+//            @RequestParam(required = false) String category) {
+//        // This method delegates to our service layer which should return a Page<TierList>
+//        return ResponseEntity.ok(tierListService.getTierLists(page, size, sortBy, category));
+//    }
+
+//    // New endpoint for AI-powered search TODO, just a place holder for now
+//    @GetMapping("/search")
+//    public ResponseEntity<?> searchTierLists(@RequestParam String query) {
+//        return ResponseEntity.ok(aiSearchService.searchTierLists(query));
+//    }
+}

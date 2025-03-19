@@ -44,7 +44,6 @@ function LandingPg() {
             }
 
             const data = await response.json();
-            console.log("Successfully fetched tier lists:", data);
 
             // Check if data is an array before processing
             if (!Array.isArray(data)) {
@@ -55,7 +54,6 @@ function LandingPg() {
 
             const processedLists = await Promise.all(data.map(async (list) => {
                 try {
-                    console.log(`Fetching items for list ${list.id}...`);
                     const itemsResponse = await fetch(`http://localhost:8080/api/tierlists/${list.id}/items`, {
                         credentials: 'include'
                     });
@@ -74,7 +72,6 @@ function LandingPg() {
 
                     const items = await itemsResponse.json();
 
-                    console.log(`Fetching ratings for list ${list.id}...`);
                     const ratingsResponse = await fetch(`http://localhost:8080/api/tierlists/${list.id}/ratings`, {
                         credentials: 'include'
                     });
@@ -92,7 +89,6 @@ function LandingPg() {
 
                     const ratings = await ratingsResponse.json();
 
-                    console.log(`Fetching likes for list ${list.id}...`);
                     const likesResponse = await fetch(`http://localhost:8080/api/tierlists/${list.id}/likes/count`, {
                         credentials: 'include'
                     });

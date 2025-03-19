@@ -32,8 +32,8 @@ public class TierList {
     @JoinColumn(name = "user_id")
 
     // not sure about this, needs testing tbh
-    @OneToMany(mappedBy = "tierList", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<TierListLike> likes;
+//    @OneToMany(mappedBy = "tierList", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+//    private List<TierListLike> likes;
     
     private User creator;
 

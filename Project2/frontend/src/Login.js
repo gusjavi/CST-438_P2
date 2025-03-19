@@ -12,6 +12,27 @@ function LoginPage() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
+    // Function to fetch user ID by username
+    async function fetchUserIdByUsername(username) {
+        try {
+            const response = await fetch(`http://localhost:8080/api/users/by-name/${username}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json" }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                return data.userId;
+            } else {
+                console.warn("Could not fetch user ID for username:", username);
+                return null;
+            }
+        } catch (err) {
+            console.error("Error fetching user ID:", err);
+            return null;
+        }
+    }
+
     function handleChange(e) {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     }
@@ -35,7 +56,11 @@ function LoginPage() {
                 console.log("Login Successful", data);
                 localStorage.setItem("authToken", data.data);
                 localStorage.setItem("isSignedIn", "true");
+
+                let userDisplayName;
+
                 if (data.username) {
+                    userDisplayName = data.username;
                     localStorage.setItem("username", data.username);
                 } else {
                     try {
@@ -43,10 +68,20 @@ function LoginPage() {
                         const displayName = userCredential.user.displayName;
                         console.log(userCredential);
                         if (displayName) {
+                            userDisplayName = displayName;
                             localStorage.setItem("username", displayName);
                         }
                     } catch (firebaseError) {
                         console.warn("Couldn't get username from Firebase:", firebaseError);
+                    }
+                }
+
+                // Fetch and store user ID if we have a username
+                if (userDisplayName) {
+                    const userId = await fetchUserIdByUsername(userDisplayName);
+                    if (userId) {
+                        localStorage.setItem("userId", userId);
+                        console.log("User ID stored:", userId);
                     }
                 }
 
@@ -82,12 +117,27 @@ function LoginPage() {
             if (data.success) {
                 localStorage.setItem("authToken", data.data);
                 localStorage.setItem("isSignedIn", "true");
+
+                let userDisplayName;
+
                 if (displayName) {
+                    userDisplayName = displayName;
                     localStorage.setItem("username", displayName);
                 } else if (data.username) {
+                    userDisplayName = data.username;
                     localStorage.setItem("username", data.username);
                 } else {
+                    userDisplayName = "User";
                     localStorage.setItem("username", "User");
+                }
+
+                // Fetch and store user ID
+                if (userDisplayName) {
+                    const userId = await fetchUserIdByUsername(userDisplayName);
+                    if (userId) {
+                        localStorage.setItem("userId", userId);
+                        console.log("User ID stored:", userId);
+                    }
                 }
 
                 alert("Google login successful!");
