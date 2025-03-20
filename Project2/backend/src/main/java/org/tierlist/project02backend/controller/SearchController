@@ -1,0 +1,25 @@
+package org.tierlist.project02backend.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import org.tierlist.project02backend.model.TierList;
+import org.tierlist.project02backend.service.AISearchService;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping("/api/search")
+public class SearchController {
+
+    private final AISearchService aiSearchService;
+
+    public SearchController(AISearchService aiSearchService) {
+        this.aiSearchService = aiSearchService;
+    }
+
+    @GetMapping
+    public List<TierList> search(@RequestParam String query) {
+        return aiSearchService.searchTierLists(query);
+    }
+}
