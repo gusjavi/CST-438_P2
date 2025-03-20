@@ -16,6 +16,9 @@ public interface TierListRepository extends JpaRepository<TierList, Long> {
     @Query("SELECT t FROM TierList t WHERE t.isPublic = true")
     List<TierList> findByIsPublicTrue();
 
+    @Query("SELECT t FROM TierList t WHERE LOWER(t.title) LIKE %:keyword% OR LOWER(t.description) LIKE %:keyword%")
+    List<TierList> searchByKeyword(@Param("keyword") String keyword);
+
     // Keep the commented methods for future implementation
 //    Page<TierList> findByCategory(String category, Pageable pageable);
 //
