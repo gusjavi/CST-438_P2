@@ -14,8 +14,10 @@ public class CorsConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
 
-        // Configure CORS settings
+        // Allow frontend container in Docker
+        config.addAllowedOrigin("http://frontend:8080");
         config.addAllowedOrigin("http://localhost:3000");
+        config.addAllowedOrigin("http://localhost:80");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.setAllowCredentials(true);
