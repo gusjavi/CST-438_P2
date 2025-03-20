@@ -74,7 +74,7 @@ function LandingPg() {
                     const ratingsResponse = await fetch(`http://localhost:8080/api/tierlists/${list.id}/ratings`, {
                         credentials: 'include'
                     });
-
+                    console.log("Ratings data structure:", ratingsResponse[0]);
                     if (!ratingsResponse.ok) {
                         console.error(`Error fetching ratings for list ${list.id}: ${ratingsResponse.status}`);
                         return {
@@ -133,6 +133,9 @@ function LandingPg() {
     };
 
     const organizeTierItems = (items, ratings) => {
+        console.log("First item:", items[0]);
+        console.log("First rating:", ratings[0]);
+
         const tiers = {
             S: [],
             A: [],
@@ -143,12 +146,23 @@ function LandingPg() {
         };
 
         items.forEach(item => {
-            const itemId = item?.id || 0;
-            const itemRatings = ratings.filter(rating => (rating.tierListItem?.id || 0) === itemId);
+            const itemId = item.id;
+            console.log(`Processing item ID: ${itemId}, Name: ${item.itemName}`);
+
+            // Match ratings to items using the id
+            const itemRatings = ratings.filter(rating => rating.id === itemId);
+
+            console.log(`Found ${itemRatings.length} ratings for item ${itemId}`);
+
             if (itemRatings.length > 0) {
-                const avgRating = calculateAverageRating(itemRatings);
-                tiers[avgRating].push(item);
+                const tierRating = itemRatings[0].ranking; // Just use the first rating
+                // Or use average if you have multiple ratings per item
+                // const tierRating = calculateAverageRating(itemRatings);
+
+                console.log(`Item ${itemId} rating: ${tierRating}`);
+                tiers[tierRating].push(item);
             } else {
+                // Default unrated items to F tier
                 tiers.F.push(item);
             }
         });
