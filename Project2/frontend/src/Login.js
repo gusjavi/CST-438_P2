@@ -1,7 +1,5 @@
-import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from "firebase/auth";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth } from "./firebaseCOnfig";
 import "./styles.css";
 
 function LoginPage() {
@@ -52,29 +50,14 @@ function LoginPage() {
                 })
             });
             const data = await response.json();
+
             if (data.success) {
                 console.log("Login Successful", data);
                 localStorage.setItem("authToken", data.data);
                 localStorage.setItem("isSignedIn", "true");
 
-                let userDisplayName;
-
-                if (data.username) {
-                    userDisplayName = data.username;
-                    localStorage.setItem("username", data.username);
-                } else {
-                    try {
-                        const userCredential = await signInWithEmailAndPassword(auth, formData.email, formData.password);
-                        const displayName = userCredential.user.displayName;
-                        console.log(userCredential);
-                        if (displayName) {
-                            userDisplayName = displayName;
-                            localStorage.setItem("username", displayName);
-                        }
-                    } catch (firebaseError) {
-                        console.warn("Couldn't get username from Firebase:", firebaseError);
-                    }
-                }
+                let userDisplayName = data.username || "User";
+                localStorage.setItem("username", userDisplayName);
 
                 // Fetch and store user ID if we have a username
                 if (userDisplayName) {
@@ -86,68 +69,20 @@ function LoginPage() {
                 }
 
                 alert("Login successful!");
-                navigate("/");
+
+                // Redirect based on user role
+                const userRole = data.role || "USER"; // Default role if not provided
+                if (userRole === "ADMIN") {
+                    navigate("/admin-dashboard"); // Redirect admins
+                } else {
+                    navigate("/tier"); // Redirect normal users
+                }
             } else {
                 setError(data.error || "Login failed. Check your credentials.");
             }
         } catch (err) {
             console.error("Login Error:", err);
             setError("Server error. Please try again later.");
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    // Google Sign-In Function
-    async function handleGoogleLogin() {
-        setLoading(true);
-        const provider = new GoogleAuthProvider();
-        try {
-            const result = await signInWithPopup(auth, provider);
-
-            const idToken = await result.user.getIdToken();
-            const displayName = result.user.displayName;
-            const res = await fetch("http://localhost:8080/api/auth/google-verify", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ token: idToken })
-            });
-            const data = await res.json();
-
-            if (data.success) {
-                localStorage.setItem("authToken", data.data);
-                localStorage.setItem("isSignedIn", "true");
-
-                let userDisplayName;
-
-                if (displayName) {
-                    userDisplayName = displayName;
-                    localStorage.setItem("username", displayName);
-                } else if (data.username) {
-                    userDisplayName = data.username;
-                    localStorage.setItem("username", data.username);
-                } else {
-                    userDisplayName = "User";
-                    localStorage.setItem("username", "User");
-                }
-
-                // Fetch and store user ID
-                if (userDisplayName) {
-                    const userId = await fetchUserIdByUsername(userDisplayName);
-                    if (userId) {
-                        localStorage.setItem("userId", userId);
-                        console.log("User ID stored:", userId);
-                    }
-                }
-
-                alert("Google login successful!");
-                navigate("/");
-            } else {
-                setError(data.error || "Google sign-in failed on server side.");
-            }
-        } catch (err) {
-            console.error("Google login error:", err);
-            setError("Failed to sign in with Google. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -166,10 +101,6 @@ function LoginPage() {
                     {loading ? "Logging in..." : "Log in"}
                 </button>
             </form>
-
-            <button onClick={handleGoogleLogin} className="btn google-btn" disabled={loading}>
-                {loading ? "Processing..." : "Sign in with Google"}
-            </button>
 
             <p>
                 Don't have an account? <span className="link" onClick={() => navigate("/signup")}>Sign up</span>

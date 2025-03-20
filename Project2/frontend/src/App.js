@@ -6,6 +6,7 @@ import LandingPg from "./LandingPg";
 import TierListPg from "./TierListPg";
 import EditPg from "./EditPg";
 import ProtectedRoute from "./ProtectedRoute";
+import AdminDashboard from "./AdminDashboard";
 
 function App() {
     return (
@@ -16,6 +17,8 @@ function App() {
 
             <Route path="/tier" element={<ProtectedRoute element={<TierListPg />} />} />
             <Route path="/edit" element={<ProtectedRoute element={<EditPg />} />} />
+            <Route path="/admin" element={<ProtectedRoute adminOnly={true} element={<AdminDashboard />} />} />
+
             <Route path="*" element={<h1>404 - Page Not Found</h1>} />
         </Routes>
     );

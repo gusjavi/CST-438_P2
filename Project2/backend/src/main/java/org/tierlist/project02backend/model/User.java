@@ -11,9 +11,13 @@ public class User {
     @Column(name = "user_id", nullable = false, updatable = false)
     private String userId;
 
-    private String name;
-
+    private String username;
     private String email;
+
+    @Column(nullable = false)  // Ensure it's required
+    private String password;   // 🔹 ADD PASSWORD FIELD
+
+    private boolean isAdmin;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -27,14 +31,14 @@ public class User {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // Convenience constructor
     public User(String userId, String name, String email) {
         this.userId = userId;
-        this.name = name;
+        this.username = username;
         this.email = email;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
+
 
     // Getters and setters
     public String getUserId() {
@@ -45,16 +49,15 @@ public class User {
         this.userId = userId;
     }
 
-    public String getName() {
-        return name;
+    public String getName() {  // 🔹 Renaming "username" to "name"
+        return username;
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.username = name;
         setUpdatedAt(LocalDateTime.now());
     }
 
-    // Will need changes when integrated with Oauth
     public String getEmail() {
         return email;
     }
@@ -62,6 +65,23 @@ public class User {
     public void setEmail(String email) {
         this.email = email;
         setUpdatedAt(LocalDateTime.now());
+    }
+
+    public String getPassword() {  // 🔹 Add getter for password
+        return password;
+    }
+
+    public void setPassword(String password) {  // 🔹 Add setter for password
+        this.password = password;
+        setUpdatedAt(LocalDateTime.now());
+    }
+
+    public boolean isAdmin() {
+        return isAdmin;
+    }
+
+    public void setAdmin(boolean admin) {
+        isAdmin = admin;
     }
 
     public LocalDateTime getCreatedAt() {

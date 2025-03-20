@@ -6,6 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.tierlist.project02backend.model.User;
 import org.tierlist.project02backend.repository.UserRepository;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,6 +21,8 @@ public class UserController {
     @Autowired
     private UserRepository userRepository;
 
+    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
     // Get all users
     @GetMapping
     public ResponseEntity<List<User>> getAllUsers() {
@@ -30,19 +34,14 @@ public class UserController {
     @GetMapping("/{userId}")
     public ResponseEntity<User> getUserById(@PathVariable String userId) {
         Optional<User> user = userRepository.findById(userId);
-
-        if (user.isPresent()) {
-            return new ResponseEntity<>(user.get(), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        return user.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    // Get user ID by username
+    // Get user ID by name
     @GetMapping("/by-name/{name}")
     public ResponseEntity<?> getUserIdByName(@PathVariable String name) {
         Optional<User> user = userRepository.findByName(name);
-
         if (user.isPresent()) {
             Map<String, String> response = new HashMap<>();
             response.put("userId", user.get().getUserId());
@@ -55,6 +54,7 @@ public class UserController {
     // Create new user
     @PostMapping
     public ResponseEntity<User> createUser(@RequestBody User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword())); // Hash password
         User newUser = userRepository.save(user);
         return new ResponseEntity<>(newUser, HttpStatus.CREATED);
     }
@@ -63,7 +63,6 @@ public class UserController {
     @PutMapping("/{userId}")
     public ResponseEntity<User> updateUser(@PathVariable String userId, @RequestBody User userDetails) {
         Optional<User> userData = userRepository.findById(userId);
-
         if (userData.isPresent()) {
             User user = userData.get();
             user.setName(userDetails.getName());
