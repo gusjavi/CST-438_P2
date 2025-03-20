@@ -1,0 +1,36 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "8080:8080"  # Expose backend on port 8080
+    env_file:
+      - ./.env.properties
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    volumes:
+      - ./firebase-service-account.json:/app/src/main/resources/firebase-service-account.json  # Mount the Firebase service account file
+    networks:
+      - tierlist-network
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "80:80"  # Expose frontend on port 80
+    environment:
+      - REACT_APP_FIREBASE_API_KEY=AIzaSyDRUhjpENDGnVxcWzf7GZEXYEI62OmOFUc
+      - REACT_APP_FIREBASE_AUTH_DOMAIN=autho-8946f.firebaseapp.com
+      - REACT_APP_FIREBASE_PROJECT_ID=autho-8946f
+      - REACT_APP_FIREBASE_STORAGE_BUCKET=autho-8946f.appspot.com
+      - REACT_APP_FIREBASE_MESSAGING_SENDER_ID=812368438765
+      - REACT_APP_FIREBASE_APP_ID=1:812368438765:web:0daa5d1f2b9ef8db873e4
+    depends_on:
+      - backend  # Ensure backend is started before frontend
+    networks:
+      - tierlist-network
+
+networks:
+  tierlist-network:
+    driver: bridge
+
