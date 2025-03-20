@@ -1,58 +1,60 @@
 package org.tierlist.project02backend.service;
 
-import com.google.cloud.language.v1.Document;
-import com.google.cloud.language.v1.Entity;
-import com.google.cloud.language.v1.LanguageServiceClient;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.tierlist.project02backend.model.TierList;
 import org.tierlist.project02backend.repository.TierListRepository;
-
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Service
 public class AISearchService {
 
     private final TierListRepository tierListRepository;
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    @Value("${openai.api.key}")
+    private String openAiApiKey;
 
     public AISearchService(TierListRepository tierListRepository) {
         this.tierListRepository = tierListRepository;
     }
 
-    public Set<TierList> search(String query) {
-        Set<TierList> resultSet = new HashSet<>();
+    public List<TierList> searchTierLists(String query) {
+        String keyword = extractKeywordWithOpenAI(query);
+        return tierListRepository.searchByKeyword(keyword);
+    }
 
-        try (LanguageServiceClient language = LanguageServiceClient.create()) {
-            Document doc = Document.newBuilder()
-                    .setContent(query)
-                    .setType(Document.Type.PLAIN_TEXT)
-                    .build();
+    private String extractKeywordWithOpenAI(String query) {
+        String prompt = "Extract a concise keyword or short phrase from the following search query to optimize database searching:\n\n"
+                + "Query: \"" + query + "\"\nKeyword:";
 
-            List<Entity> entities = language.analyzeEntities(doc).getEntitiesList();
+        String url = "https://api.openai.com/v1/chat/completions";
 
-            if (!entities.isEmpty()) {
-                for (Entity entity : entities) {
-                    addResultsFromEntity(entity, resultSet);
-                }
-            } else {
-                fallbackSearch(query, resultSet);
-            }
-        } catch (Exception e) {
-            fallbackSearch(query, resultSet);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(openAiApiKey);
+
+        String requestBody = "{ \"model\": \"gpt-3.5-turbo\", \"messages\": [{\"role\": \"user\", \"content\": \"" + prompt + "\"}], \"max_tokens\": 10, \"temperature\": 0.0 }";
+
+        HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+
+        // Extract keyword safely using JSON parsing (recommended), simplified here for brevity:
+        return parseKeywordFromResponse(response.getBody());
+    }
+
+    private String parseKeywordFromResponse(String responseBody) {
+        // In production use Jackson/Gson; here's a simplified version:
+        String marker = "\"content\":\"";
+        int start = responseBody.indexOf(marker) + marker.length();
+        int end = responseBody.indexOf("\"", start);
+        if (start >= marker.length() && end > start) {
+            return responseBody.substring(start, end).trim().toLowerCase();
+        } else {
+            return "";
         }
-
-        return resultSet;
-    }
-
-    private void addResultsFromEntity(Entity entity, Set<TierList> resultSet) {
-        String keyword = entity.getName().toLowerCase();
-        List<TierList> results = tierListRepository.searchByKeyword(keyword);
-        resultSet.addAll(results);
-    }
-
-    private void addResultsFromKeyword(String keyword, Set<TierList> resultSet) {
-        List<TierList> results = tierListRepository.searchByKeyword(keyword.toLowerCase());
-        resultSet.addAll(results);
     }
 }
