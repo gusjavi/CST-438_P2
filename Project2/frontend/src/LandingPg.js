@@ -26,7 +26,7 @@ function LandingPg() {
     const fetchTierLists = async () => {
         try {
             setIsLoading(true);
-            setError(null); // Clear any previous errors
+            setError(null);
 
             console.log("Fetching tier lists...");
             const response = await fetch('http://localhost:8080/api/tierlists', {
@@ -44,9 +44,7 @@ function LandingPg() {
             }
 
             const data = await response.json();
-            console.log("Successfully fetched tier lists:", data);
 
-            // Check if data is an array before processing
             if (!Array.isArray(data)) {
                 console.error("Expected an array but received:", data);
                 setTierLists([]);
@@ -55,7 +53,6 @@ function LandingPg() {
 
             const processedLists = await Promise.all(data.map(async (list) => {
                 try {
-                    console.log(`Fetching items for list ${list.id}...`);
                     const itemsResponse = await fetch(`http://localhost:8080/api/tierlists/${list.id}/items`, {
                         credentials: 'include'
                     });
@@ -65,6 +62,7 @@ function LandingPg() {
                         return {
                             id: list.id,
                             name: list.title,
+                            creator: list.user_id,
                             description: list.description,
                             tiers: { S: [], A: [], B: [], C: [], D: [], F: [] },
                             likes: 0
@@ -73,11 +71,10 @@ function LandingPg() {
 
                     const items = await itemsResponse.json();
 
-                    console.log(`Fetching ratings for list ${list.id}...`);
                     const ratingsResponse = await fetch(`http://localhost:8080/api/tierlists/${list.id}/ratings`, {
                         credentials: 'include'
                     });
-
+                    console.log("Ratings data structure:", ratingsResponse[0]);
                     if (!ratingsResponse.ok) {
                         console.error(`Error fetching ratings for list ${list.id}: ${ratingsResponse.status}`);
                         return {
@@ -91,7 +88,6 @@ function LandingPg() {
 
                     const ratings = await ratingsResponse.json();
 
-                    console.log(`Fetching likes for list ${list.id}...`);
                     const likesResponse = await fetch(`http://localhost:8080/api/tierlists/${list.id}/likes/count`, {
                         credentials: 'include'
                     });
@@ -130,13 +126,16 @@ function LandingPg() {
         } catch (err) {
             console.error("Error fetching tier lists:", err);
             setError("Failed to load tier lists. Please try again later.");
-            setTierLists([]); // Set an empty array to avoid further errors
+            setTierLists([]);
         } finally {
             setIsLoading(false);
         }
     };
 
     const organizeTierItems = (items, ratings) => {
+        console.log("First item:", items[0]);
+        console.log("First rating:", ratings[0]);
+
         const tiers = {
             S: [],
             A: [],
@@ -147,18 +146,30 @@ function LandingPg() {
         };
 
         items.forEach(item => {
-            const itemRatings = ratings.filter(rating => rating.tierListItem.id === item.id);
+            const itemId = item.id;
+            console.log(`Processing item ID: ${itemId}, Name: ${item.itemName}`);
+
+            // Match ratings to items using the id
+            const itemRatings = ratings.filter(rating => rating.id === itemId);
+
+            console.log(`Found ${itemRatings.length} ratings for item ${itemId}`);
 
             if (itemRatings.length > 0) {
-                const avgRating = calculateAverageRating(itemRatings);
-                tiers[avgRating].push(item.itemName);
+                const tierRating = itemRatings[0].ranking; // Just use the first rating
+                // Or use average if you have multiple ratings per item
+                // const tierRating = calculateAverageRating(itemRatings);
+
+                console.log(`Item ${itemId} rating: ${tierRating}`);
+                tiers[tierRating].push(item);
             } else {
-                tiers.F.push(item.itemName);
+                // Default unrated items to F tier
+                tiers.F.push(item);
             }
         });
 
         return tiers;
     };
+
 
     const calculateAverageRating = (ratings) => {
         if (ratings.length === 0) return "F";
@@ -192,7 +203,7 @@ function LandingPg() {
     };
 
     const updatePg = () => {
-        fetchTierLists(); // Refresh the tier lists
+        fetchTierLists();
     };
 
     return (
@@ -241,7 +252,7 @@ function LandingPg() {
                     <div className="modal-content">
                         <h2>{username}'s Tier List</h2>
                         {isSignedIn && username !== "Guest" ? (
-                            // Find the user's tier list if they're signed in
+
                             tierLists.find(list => list.creator?.name === username) ? (
                                 <TierListDisplay tierList={tierLists.find(list => list.creator?.name === username)} />
                             ) : (
@@ -272,7 +283,18 @@ function TierListDisplay({ tierList }) {
                         <div className="tier-items">
                             {tierList.tiers[tier].map((item, itemIndex) => (
                                 <div key={itemIndex} className="tier-item">
-                                    {item}
+                                    {item.imageUrl && (
+                                        <img
+                                            src={item.imageUrl.startsWith('data:') ? item.imageUrl : `data:image/jpeg;base64,${item.imageUrl}`}
+                                            alt={item.itemName}
+                                            className="tier-image"
+                                            onError={(e) => {
+                                                console.error('Image failed to load for:', item.itemName);
+                                                e.target.style.display = 'none';
+                                            }}
+                                        />
+                                    )}
+                                    <div>{item.itemName}</div>
                                 </div>
                             ))}
                         </div>

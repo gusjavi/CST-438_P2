@@ -34,13 +34,24 @@ public class TierListService {
     }
 
     public TierList createTierList(TierList tierList) {
-        logger.info("Creating new tier list: {}", tierList.getTitle());
+        logger.info("Creating new tier list: {}, is public: {}", tierList.getTitle(),tierList.isPublic());
         return tierListRepository.save(tierList);
     }
 
     public List<TierList> getAllTierLists() {
         logger.info("Fetching all tier lists");
         return tierListRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<TierList> getAllPublicTierLists() {
+        logger.info("Fetching all public tier lists");
+        try {
+            return tierListRepository.findByIsPublicTrue();
+        } catch (Exception e) {
+            logger.error("Error fetching public tier lists: ", e);
+            throw e; // Re-throw so the controller can handle it
+        }
     }
 
     public Optional<TierList> getTierListById(Long id) {
@@ -122,7 +133,7 @@ public class TierListService {
                     return new RuntimeException("User not found with id: " + userId);
                 });
 
-        // ✅ FIX: Correct repository method
+        // FIX: Correct repository method
         boolean likeExists = tierListLikeRepository.existsByUser_UserIdAndTierListId(userId, tierListId);
 
         if (!likeExists) {

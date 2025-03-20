@@ -229,9 +229,9 @@ body {
     scrollbar-color: #555 #121212;
     flex-direction: column;
 }
-.tier-image{
-    height:  150px;
-    width: 150px;
+.tier-image {
+    max-width: 100px;
+    max-height: 100px;
     object-fit: contain;
 }
 .drag-placeholder{

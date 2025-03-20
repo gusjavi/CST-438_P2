@@ -12,13 +12,18 @@ const initialTiers = {
     storageBox: []
 };
 
+const API_BASE_URL = 'http://localhost:8080';
+
 function TierListPage() {
     const navigate = useNavigate();
     const [tiers, setTiers] = useState(initialTiers);
     const [draggingItem, setDraggingItem] = useState(null);
     const [isSignedIn, setSignedIn] = useState(localStorage.getItem("isSignedIn") === "true");
     const [username, setUsername] = useState(localStorage.getItem("username") || "Guest");
-    const [isPublic, setIsPublic] = useState(localStorage.getItem("isPublic") === "true");
+    const [isPublic, setIsPublic] = useState(localStorage.getItem("isPublic") !== "false");
+    const [tierListTitle, setTierListTitle] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState(null);
 
     useEffect(() => {
         localStorage.setItem("isSignedIn", isSignedIn);
@@ -26,7 +31,12 @@ function TierListPage() {
     }, [isSignedIn, isPublic]);
 
     const togglePrivacy = () => {
-        setIsPublic((prev) => !prev);
+        setIsPublic((prev) => {
+            const newValue = !prev;
+            localStorage.setItem("isPublic", newValue.toString());
+            console.log("Privacy toggled to:", newValue ? "Public" : "Private");
+            return newValue;
+        });
     };
 
     const handleAddItem = (event) => {
@@ -99,7 +109,116 @@ function TierListPage() {
         setSignedIn(false);
         navigate("/");
     };
-    const  submitTierList=()=>{}
+
+    const submitTierList = async () => {
+
+        if (!tierListTitle.trim()) {
+            setSubmitError("Please enter a title for your tier list");
+            return;
+        }
+        if (!isSignedIn) {
+            setSubmitError("Please sign in to create a tier list");
+            return;
+        }
+
+        const hasItems = Object.keys(tiers).some(tier =>
+            tier !== 'storageBox' && tiers[tier].length > 0
+        );
+
+        if (!hasItems) {
+            setSubmitError("Please add at least one item to a tier");
+            return;
+        }
+
+        try {
+            setIsSubmitting(true);
+            setSubmitError(null);
+
+            const userId = localStorage.getItem("userId");
+            console.log("userid",userId);
+
+            if (!userId) {
+                throw new Error("User ID not found. Please sign in again.");
+            }
+
+            const tierListData = {
+                title: tierListTitle,
+                description: `${username}'s tier list for ${tierListTitle}`,
+                isPublic: isPublic,
+                category: "General",
+                creator: {
+                    userId: userId
+                }
+            };
+
+            const tierListResponse = await fetch(`${API_BASE_URL}/api/tierlists`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem("token")}`
+                },
+                body: JSON.stringify(tierListData)
+            });
+
+            if (!tierListResponse.ok) {
+                const errorData = await tierListResponse.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Failed to create tier list');
+            }
+
+            const tierList = await tierListResponse.json();
+            const tierListId = tierList.id;
+
+            for (const [tierName, items] of Object.entries(tiers)) {
+                if (tierName === 'storageBox') continue;
+                for (const item of items) {
+                    try {
+                        const itemData = {
+                            itemName: item.text,
+                            imageUrl: item.image
+                        };
+
+                        const itemResponse = await fetch(`${API_BASE_URL}/api/tierlists/${tierListId}/items`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${localStorage.getItem("token")}`
+                            },
+                            body: JSON.stringify(itemData)
+                        });
+
+                        if (!itemResponse.ok) {
+                            console.error(`Failed to add item ${item.text}`);
+                            continue; // Continue with other items
+                        }
+                        const savedItem = await itemResponse.json();
+
+                        const ratingResponse = await fetch(`${API_BASE_URL}/api/tierlists/${tierListId}/items/${savedItem.id}/rate?userId=${encodeURIComponent(userId)}&ranking=${tierName}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${localStorage.getItem("token")}`
+                            }
+                        });
+
+                        if (!ratingResponse.ok) {
+                            console.error(`Failed to rate item ${item.text}`);
+                        }
+                    } catch (itemError) {
+                        console.error("Error processing item:", itemError);
+                    }
+                }
+            }
+
+            alert("Tier list created successfully!");
+            navigate(`/`);
+
+        } catch (error) {
+            console.error("Error submitting tier list:", error);
+            setSubmitError(error.message || "Failed to create tier list. Please try again.");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
     return (
         <div className="landing-container">
             <div className="header">
@@ -110,7 +229,13 @@ function TierListPage() {
                 <button onClick={() => navigate("/")} className="btn">Home</button>
                 <button onClick={() => navigate("/edit")} className="btn">Edit Account</button>
             </div>
-            <input type="text" placeholder="Tier List" className="tier-input" />
+            <input
+                type="text"
+                placeholder="Tier List Title"
+                className="tier-input"
+                value={tierListTitle}
+                onChange={(e) => setTierListTitle(e.target.value)}
+            />
             <div className="privacy-toggle">
                 <label className="switch">
                     <input type="checkbox" checked={isPublic} onChange={togglePrivacy} />
@@ -181,8 +306,17 @@ function TierListPage() {
                     className="tier-input"
                 />
             </div>
+
+            {submitError && <div className="error-message">{submitError}</div>}
+
             <div>
-                <button className="btn" onClick={() => submitTierList()}>Create Tier-List</button>
+                <button
+                    className="btn"
+                    onClick={submitTierList}
+                    disabled={isSubmitting}
+                >
+                    {isSubmitting ? "Creating..." : "Create Tier-List"}
+                </button>
             </div>
         </div>
     );
