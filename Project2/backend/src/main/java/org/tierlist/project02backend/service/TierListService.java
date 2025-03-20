@@ -34,7 +34,7 @@ public class TierListService {
     }
 
     public TierList createTierList(TierList tierList) {
-        logger.info("Creating new tier list: {}", tierList.getTitle());
+        logger.info("Creating new tier list: {}, is public: {}", tierList.getTitle(),tierList.isPublic());
         return tierListRepository.save(tierList);
     }
 
@@ -43,7 +43,6 @@ public class TierListService {
         return tierListRepository.findAll();
     }
 
-    // Added transaction management with read-only flag
     @Transactional(readOnly = true)
     public List<TierList> getAllPublicTierLists() {
         logger.info("Fetching all public tier lists");

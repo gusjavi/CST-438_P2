@@ -12,8 +12,7 @@ const initialTiers = {
     storageBox: []
 };
 
-// API base URL - adjust this to your backend server address
-const API_BASE_URL = 'http://localhost:8080'; // Spring Boot typically runs on port 8080
+const API_BASE_URL = 'http://localhost:8080';
 
 function TierListPage() {
     const navigate = useNavigate();
@@ -21,7 +20,7 @@ function TierListPage() {
     const [draggingItem, setDraggingItem] = useState(null);
     const [isSignedIn, setSignedIn] = useState(localStorage.getItem("isSignedIn") === "true");
     const [username, setUsername] = useState(localStorage.getItem("username") || "Guest");
-    const [isPublic, setIsPublic] = useState(localStorage.getItem("isPublic") === "true");
+    const [isPublic, setIsPublic] = useState(localStorage.getItem("isPublic") !== "false");
     const [tierListTitle, setTierListTitle] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState(null);
@@ -32,7 +31,12 @@ function TierListPage() {
     }, [isSignedIn, isPublic]);
 
     const togglePrivacy = () => {
-        setIsPublic((prev) => !prev);
+        setIsPublic((prev) => {
+            const newValue = !prev;
+            localStorage.setItem("isPublic", newValue.toString());
+            console.log("Privacy toggled to:", newValue ? "Public" : "Private");
+            return newValue;
+        });
     };
 
     const handleAddItem = (event) => {
@@ -107,19 +111,16 @@ function TierListPage() {
     };
 
     const submitTierList = async () => {
-        // Validate tier list title
+
         if (!tierListTitle.trim()) {
             setSubmitError("Please enter a title for your tier list");
             return;
         }
-
-        // Check if user is signed in
         if (!isSignedIn) {
             setSubmitError("Please sign in to create a tier list");
             return;
         }
 
-        // Check if there are items in tiers (excluding storage box)
         const hasItems = Object.keys(tiers).some(tier =>
             tier !== 'storageBox' && tiers[tier].length > 0
         );
@@ -133,7 +134,6 @@ function TierListPage() {
             setIsSubmitting(true);
             setSubmitError(null);
 
-            // Get userId from localStorage
             const userId = localStorage.getItem("userId");
             console.log("userid",userId);
 
@@ -141,7 +141,6 @@ function TierListPage() {
                 throw new Error("User ID not found. Please sign in again.");
             }
 
-            // Create tier list object
             const tierListData = {
                 title: tierListTitle,
                 description: `${username}'s tier list for ${tierListTitle}`,
@@ -152,12 +151,11 @@ function TierListPage() {
                 }
             };
 
-            // Submit tier list first to get the ID
             const tierListResponse = await fetch(`${API_BASE_URL}/api/tierlists`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem("token")}` // Add token for auth
+                    'Authorization': `Bearer ${localStorage.getItem("token")}`
                 },
                 body: JSON.stringify(tierListData)
             });
@@ -170,18 +168,13 @@ function TierListPage() {
             const tierList = await tierListResponse.json();
             const tierListId = tierList.id;
 
-            // Submit all tier list items with their rankings
             for (const [tierName, items] of Object.entries(tiers)) {
-                // Skip storage box
                 if (tierName === 'storageBox') continue;
-
-                // Add each item with its tier ranking
                 for (const item of items) {
                     try {
-                        // Create the item
                         const itemData = {
                             itemName: item.text,
-                            imageUrl: item.image // Consider uploading to storage and storing URL instead
+                            imageUrl: item.image
                         };
 
                         const itemResponse = await fetch(`${API_BASE_URL}/api/tierlists/${tierListId}/items`, {
@@ -197,10 +190,8 @@ function TierListPage() {
                             console.error(`Failed to add item ${item.text}`);
                             continue; // Continue with other items
                         }
-
                         const savedItem = await itemResponse.json();
 
-                        // Rate the item according to its tier
                         const ratingResponse = await fetch(`${API_BASE_URL}/api/tierlists/${tierListId}/items/${savedItem.id}/rate?userId=${encodeURIComponent(userId)}&ranking=${tierName}`, {
                             method: 'POST',
                             headers: {
@@ -214,14 +205,12 @@ function TierListPage() {
                         }
                     } catch (itemError) {
                         console.error("Error processing item:", itemError);
-                        // Continue with other items
                     }
                 }
             }
 
-            // Success! Navigate to the newly created tier list
             alert("Tier list created successfully!");
-            navigate(`/tierlist/${tierListId}`);
+            navigate(`/`);
 
         } catch (error) {
             console.error("Error submitting tier list:", error);

@@ -26,7 +26,7 @@ function LandingPg() {
     const fetchTierLists = async () => {
         try {
             setIsLoading(true);
-            setError(null); // Clear any previous errors
+            setError(null);
 
             console.log("Fetching tier lists...");
             const response = await fetch('http://localhost:8080/api/tierlists', {
@@ -45,7 +45,6 @@ function LandingPg() {
 
             const data = await response.json();
 
-            // Check if data is an array before processing
             if (!Array.isArray(data)) {
                 console.error("Expected an array but received:", data);
                 setTierLists([]);
@@ -127,7 +126,7 @@ function LandingPg() {
         } catch (err) {
             console.error("Error fetching tier lists:", err);
             setError("Failed to load tier lists. Please try again later.");
-            setTierLists([]); // Set an empty array to avoid further errors
+            setTierLists([]);
         } finally {
             setIsLoading(false);
         }
@@ -144,18 +143,19 @@ function LandingPg() {
         };
 
         items.forEach(item => {
-            const itemRatings = ratings.filter(rating => rating.tierListItem.id === item.id);
-
+            const itemId = item?.id || 0;
+            const itemRatings = ratings.filter(rating => (rating.tierListItem?.id || 0) === itemId);
             if (itemRatings.length > 0) {
                 const avgRating = calculateAverageRating(itemRatings);
-                tiers[avgRating].push(item.itemName);
+                tiers[avgRating].push(item);
             } else {
-                tiers.F.push(item.itemName);
+                tiers.F.push(item);
             }
         });
 
         return tiers;
     };
+
 
     const calculateAverageRating = (ratings) => {
         if (ratings.length === 0) return "F";
@@ -189,7 +189,7 @@ function LandingPg() {
     };
 
     const updatePg = () => {
-        fetchTierLists(); // Refresh the tier lists
+        fetchTierLists();
     };
 
     return (
@@ -238,7 +238,7 @@ function LandingPg() {
                     <div className="modal-content">
                         <h2>{username}'s Tier List</h2>
                         {isSignedIn && username !== "Guest" ? (
-                            // Find the user's tier list if they're signed in
+
                             tierLists.find(list => list.creator?.name === username) ? (
                                 <TierListDisplay tierList={tierLists.find(list => list.creator?.name === username)} />
                             ) : (
@@ -269,7 +269,18 @@ function TierListDisplay({ tierList }) {
                         <div className="tier-items">
                             {tierList.tiers[tier].map((item, itemIndex) => (
                                 <div key={itemIndex} className="tier-item">
-                                    {item}
+                                    {item.imageUrl && (
+                                        <img
+                                            src={item.imageUrl.startsWith('data:') ? item.imageUrl : `data:image/jpeg;base64,${item.imageUrl}`}
+                                            alt={item.itemName}
+                                            className="tier-image"
+                                            onError={(e) => {
+                                                console.error('Image failed to load for:', item.itemName);
+                                                e.target.style.display = 'none';
+                                            }}
+                                        />
+                                    )}
+                                    <div>{item.itemName}</div>
                                 </div>
                             ))}
                         </div>
