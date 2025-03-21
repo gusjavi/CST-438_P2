@@ -68,11 +68,8 @@ function TierListPage() {
     const [tierListTitle, setTierListTitle] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState(null);
-    // Added missing isPublic state
     const [isPublic, setIsPublic] = useState(true);
-    // Added category state
     const [selectedCategory, setSelectedCategory] = useState("General");
-    // Added categories array with the requested options
     const categories = ["General", "Anime", "Food", "Places", "Music", "Games", "Movies", "Animals"];
 
     useEffect(() => {
@@ -180,8 +177,6 @@ function TierListPage() {
             setSubmitError(null);
 
             const userId = localStorage.getItem("userId");
-            console.log("userid", userId);
-
             if (!userId) {
                 throw new Error("User ID not found. Please sign in again.");
             }

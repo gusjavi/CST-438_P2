@@ -27,8 +27,6 @@ function LandingPg() {
         try {
             setIsLoading(true);
             setError(null);
-
-            console.log("Fetching tier lists...");
             const response = await fetch('http://localhost:8080/api/tierlists', {
                 method: 'GET',
                 credentials: 'include',
@@ -74,7 +72,6 @@ function LandingPg() {
                     const ratingsResponse = await fetch(`http://localhost:8080/api/tierlists/${list.id}/ratings`, {
                         credentials: 'include'
                     });
-                    console.log("Ratings data structure:", ratingsResponse[0]);
                     if (!ratingsResponse.ok) {
                         console.error(`Error fetching ratings for list ${list.id}: ${ratingsResponse.status}`);
                         return {
@@ -133,9 +130,6 @@ function LandingPg() {
     };
 
     const organizeTierItems = (items, ratings) => {
-        console.log("First item:", items[0]);
-        console.log("First rating:", ratings[0]);
-
         const tiers = {
             S: [],
             A: [],
@@ -147,26 +141,14 @@ function LandingPg() {
 
         items.forEach(item => {
             const itemId = item.id;
-            console.log(`Processing item ID: ${itemId}, Name: ${item.itemName}`);
-
-            // Match ratings to items using the id
             const itemRatings = ratings.filter(rating => rating.id === itemId);
-
-            console.log(`Found ${itemRatings.length} ratings for item ${itemId}`);
-
             if (itemRatings.length > 0) {
-                const tierRating = itemRatings[0].ranking; // Just use the first rating
-                // Or use average if you have multiple ratings per item
-                // const tierRating = calculateAverageRating(itemRatings);
-
-                console.log(`Item ${itemId} rating: ${tierRating}`);
+                const tierRating = itemRatings[0].ranking;
                 tiers[tierRating].push(item);
             } else {
-                // Default unrated items to F tier
                 tiers.F.push(item);
             }
         });
-
         return tiers;
     };
 
