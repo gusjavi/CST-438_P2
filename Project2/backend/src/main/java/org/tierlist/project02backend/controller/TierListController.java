@@ -7,6 +7,7 @@ import org.tierlist.project02backend.model.*;
 import org.tierlist.project02backend.model.TierList;
 //import org.tierlist.project02backend.service.AISearchService;
 import org.tierlist.project02backend.service.TierListService;
+import org.tierlist.project02backend.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

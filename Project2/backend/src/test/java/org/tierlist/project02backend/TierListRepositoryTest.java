@@ -13,7 +13,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@TestPropertySource("classpath:.env.properties")
+@TestPropertySource("classpath:.env.properties.properties")
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public class TierListRepositoryTest {

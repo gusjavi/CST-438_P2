@@ -12,7 +12,6 @@ function LoginPage() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
-    // Function to fetch user ID by username
     async function fetchUserIdByUsername(username) {
         try {
             const response = await fetch(`http://localhost:8080/api/users/by-name/${username}`, {
@@ -25,6 +24,8 @@ function LoginPage() {
                 return data.userId;
             } else {
                 console.warn("Could not fetch user ID for username:", username);
+                alert("User not found!");
+                navigate("/signup");
                 return null;
             }
         } catch (err) {
@@ -82,6 +83,10 @@ function LoginPage() {
                     if (userId) {
                         localStorage.setItem("userId", userId);
                         console.log("User ID stored:", userId);
+                    }else{
+                        alert("Login Failed!");
+                        navigate("/signup");
+                        return null;
                     }
                 }
 
