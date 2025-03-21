@@ -381,3 +381,480 @@ input:checked + .slider:before {
 .error_notl{
     color: red;
 }
+body {
+    font-family: Arial, sans-serif;
+    background-color: #121212;
+    color: #ffffff;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+.landing-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: auto;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #1e1e1e;
+    border-bottom: 2px solid #333;
+}
+
+.sign-out {
+    cursor: pointer;
+    color: #ff4d4d;
+}
+.sign-out:hover {
+    color: #ff6666;
+}
+
+.btn-group {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.btn {
+    padding: 10px 15px;
+    background-color: #333;
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn:hover {
+    background-color: #555;
+}
+
+.tier-list-wrapper {
+    display: flex;
+    gap: 20px;
+    padding: 20px 0;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #555 #121212;
+    justify-content: center;
+}
+
+.tier-list-container {
+    flex: 0 0 auto;
+    width: 300px;
+    background-color: #1e1e1e;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(255, 255, 255, 0.1);
+}
+
+.tier-box {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+}
+
+.tier {
+    padding: 10px;
+    border-radius: 5px;
+    text-align: left;
+    font-weight: bold;
+}
+
+.tier-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.tier-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 10px;
+    background-color: #333;
+    border-radius: 4px;
+    cursor: grab;
+    width: 160px;
+}
+
+.tier.s { background-color: #ff4d4d; }
+.tier.a { background-color: #ff9933; }
+.tier.b { background-color: #ffcc33; }
+.tier.c { background-color: #99cc33; }
+.tier.d { background-color: #3399ff; }
+.tier.f { background-color: #b38920; }
+
+
+.container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-top: 50px;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.container2, .container3 {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-top: 50px;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.container3 {
+    flex-direction: column;
+    justify-content: space-around;
+}
+
+.tier-header {
+    padding: 20px;
+}
+
+.tier-username {
+    font-size: 24px;
+    color: #fff;
+}
+
+.tier-signout {
+    cursor: pointer;
+    color: #ff4d4d;
+}
+
+.tier-signout:hover {
+    color: #ff6666;
+}
+
+.tier-navigation {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.tier-btn {
+    padding: 8px 15px;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.tier-btn:hover {
+    background-color: #555;
+}
+
+.tier-input-wrapper {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.tier-input {
+    padding: 8px;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    width: 60%;
+}
+
+.tier-add-btn {
+    padding: 8px 15px;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.tier-add-btn:hover {
+    background-color: #555;
+}
+
+.tier-items-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.tier-section {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 10px;
+    background-color: #1e1e1e;
+    border-radius: 8px;
+}
+
+.tier-label {
+    font-size: 18px;
+    color: #fff;
+}
+
+.tier-list-wrapper2 {
+    display: flex;
+    gap: 20px;
+    padding: 20px 0;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #555 #121212;
+    flex-direction: column;
+}
+.tier-image {
+    max-height: 200px;
+    object-fit: contain;
+}
+.drag-placeholder{
+    text-align: center;
+    color: #aaa;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+}
+.privacy-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 15px 0;
+    gap: 10px;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #555;
+    transition: 0.4s;
+    border-radius: 20px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #4CAF50;
+}
+
+input:checked + .slider:before {
+    transform: translateX(20px);
+}
+
+.privacy-label {
+    font-size: 16px;
+    color: #fff;
+}
+.editable-text {
+    width: 100%;
+    padding: 5px;
+    background-color: transparent;
+    border: 1px solid #555;
+    color: #fff;
+    font-size: 14px;
+    text-align: center;
+    border-radius: 4px;
+    outline: none;
+}
+
+.editable-text:focus {
+    border-color: #4CAF50;
+    background-color: #222;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.modal-content h2 {
+    font-size: 18px;
+}
+
+.tier-box {
+    font-size: 14px;
+}
+
+.close-btn {
+    background-color: red;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    margin-top: 8px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.close-btn:hover {
+    background-color: darkred;
+}
+
+.error_notl{
+    color: red;
+}
+
+/* New styles for dropdown */
+.category-selector {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px 0;
+    width: 100%;
+}
+
+.category-selector p {
+    margin-bottom: 8px;
+    font-size: 16px;
+    color: #ccc;
+}
+
+.dropdown {
+    position: relative;
+    width: 250px;
+    margin: 0 auto;
+    z-index: 100;
+}
+
+.dropdown button {
+    width: 100%;
+    padding: 12px 20px;
+    background-color: #333;
+    color: white;
+    border: 1px solid #444;
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: left;
+    font-size: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.dropdown button:hover {
+    background-color: #444;
+    border-color: #666;
+}
+
+.dropdown button:after {
+    content: '▼';
+    font-size: 12px;
+    margin-left: 10px;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    margin: 5px 0 0;
+    padding: 0;
+    list-style: none;
+    background-color: #222;
+    border: 1px solid #444;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    max-height: 250px;
+    overflow-y: auto;
+    z-index: 101;
+}
+
+.dropdown-menu li {
+    padding: 12px 20px;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.dropdown-menu li:hover {
+    background-color: #444;
+}
+
+.dropdown-menu li:first-child {
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+}
+
+.dropdown-menu li:last-child {
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+}
+
+/* Custom scrollbar for dropdown menu */
+.dropdown-menu::-webkit-scrollbar {
+    width: 8px;
+}
+
+.dropdown-menu::-webkit-scrollbar-track {
+    background: #222;
+    border-radius: 4px;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 4px;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb:hover {
+    background: #777;
+}

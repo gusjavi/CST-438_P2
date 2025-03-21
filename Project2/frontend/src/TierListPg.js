@@ -1,6 +1,51 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./innerPages.css";
+
+// Dropdown component moved outside the main component
+function Dropdown({ options, onSelect }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const dropdownRef = useRef(null);
+
+    const toggleDropdown = () => {
+        setIsOpen(!isOpen);
+    };
+
+    const handleOptionClick = (option) => {
+        onSelect(option);
+        setIsOpen(false);
+    };
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
+    return (
+        <div className="dropdown" ref={dropdownRef}>
+            <button onClick={toggleDropdown}>
+                Select a Category
+            </button>
+            {isOpen && (
+                <ul className="dropdown-menu">
+                    {options.map((option) => (
+                        <li key={option} onClick={() => handleOptionClick(option)}>
+                            {option}
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </div>
+    );
+}
 
 const initialTiers = {
     S: [],
@@ -20,24 +65,20 @@ function TierListPage() {
     const [draggingItem, setDraggingItem] = useState(null);
     const [isSignedIn, setSignedIn] = useState(localStorage.getItem("isSignedIn") === "true");
     const [username, setUsername] = useState(localStorage.getItem("username") || "Guest");
-    const [isPublic, setIsPublic] = useState(localStorage.getItem("isPublic") !== "false");
     const [tierListTitle, setTierListTitle] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState(null);
+    // Added missing isPublic state
+    const [isPublic, setIsPublic] = useState(true);
+    // Added category state
+    const [selectedCategory, setSelectedCategory] = useState("General");
+    // Added categories array with the requested options
+    const categories = ["General", "Anime", "Food", "Places", "Music", "Games", "Movies", "Animals"];
 
     useEffect(() => {
         localStorage.setItem("isSignedIn", isSignedIn);
-        localStorage.setItem("isPublic", isPublic);
     }, [isSignedIn, isPublic]);
 
-    const togglePrivacy = () => {
-        setIsPublic((prev) => {
-            const newValue = !prev;
-            localStorage.setItem("isPublic", newValue.toString());
-            console.log("Privacy toggled to:", newValue ? "Public" : "Private");
-            return newValue;
-        });
-    };
 
     const handleAddItem = (event) => {
         const file = event.target.files[0];
@@ -110,8 +151,12 @@ function TierListPage() {
         navigate("/");
     };
 
-    const submitTierList = async () => {
+    const handleCategorySelect = (category) => {
+        setSelectedCategory(category);
+    };
 
+    // This is the updated submitTierList function
+    const submitTierList = async () => {
         if (!tierListTitle.trim()) {
             setSubmitError("Please enter a title for your tier list");
             return;
@@ -135,17 +180,18 @@ function TierListPage() {
             setSubmitError(null);
 
             const userId = localStorage.getItem("userId");
-            console.log("userid",userId);
+            console.log("userid", userId);
 
             if (!userId) {
                 throw new Error("User ID not found. Please sign in again.");
             }
 
+            // Create tier list first
             const tierListData = {
                 title: tierListTitle,
                 description: `${username}'s tier list for ${tierListTitle}`,
                 isPublic: isPublic,
-                category: "General",
+                category: selectedCategory,
                 creator: {
                     userId: userId
                 }
@@ -168,10 +214,14 @@ function TierListPage() {
             const tierList = await tierListResponse.json();
             const tierListId = tierList.id;
 
+            // Process each tier (except storage box)
             for (const [tierName, items] of Object.entries(tiers)) {
                 if (tierName === 'storageBox') continue;
+
+                // Process each item in the tier
                 for (const item of items) {
                     try {
+                        // First create the item
                         const itemData = {
                             itemName: item.text,
                             imageUrl: item.image
@@ -187,12 +237,18 @@ function TierListPage() {
                         });
 
                         if (!itemResponse.ok) {
-                            console.error(`Failed to add item ${item.text}`);
+                            const errorData = await itemResponse.json().catch(() => ({}));
+                            console.error(`Failed to add item ${item.text}: ${errorData.message || 'Unknown error'}`);
                             continue; // Continue with other items
                         }
+
                         const savedItem = await itemResponse.json();
 
-                        const ratingResponse = await fetch(`${API_BASE_URL}/api/tierlists/${tierListId}/items/${savedItem.id}/rate?userId=${encodeURIComponent(userId)}&ranking=${tierName}`, {
+                        // Then rate the item to assign it to the tier
+                        // Convert tier name to proper enum format as expected by backend
+                        const tierRanking = tierName.toUpperCase();
+
+                        const ratingResponse = await fetch(`${API_BASE_URL}/api/tierlists/${tierListId}/items/${savedItem.id}/rate?userId=${encodeURIComponent(userId)}&ranking=${tierRanking}`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -201,7 +257,8 @@ function TierListPage() {
                         });
 
                         if (!ratingResponse.ok) {
-                            console.error(`Failed to rate item ${item.text}`);
+                            const errorData = await ratingResponse.json().catch(() => ({}));
+                            console.error(`Failed to rate item ${item.text}: ${errorData.message || 'Unknown error'}`);
                         }
                     } catch (itemError) {
                         console.error("Error processing item:", itemError);
@@ -236,13 +293,13 @@ function TierListPage() {
                 value={tierListTitle}
                 onChange={(e) => setTierListTitle(e.target.value)}
             />
-            <div className="privacy-toggle">
-                <label className="switch">
-                    <input type="checkbox" checked={isPublic} onChange={togglePrivacy} />
-                    <span className="slider"></span>
-                </label>
-                <span className="privacy-label">{isPublic ? "Public" : "Private"}</span>
+
+            {/* Using the Dropdown component */}
+            <div className="category-selector">
+                <p>Category: {selectedCategory}</p>
+                <Dropdown options={categories} onSelect={handleCategorySelect} />
             </div>
+
             <div className="tier-list-wrapper2">
                 {Object.keys(tiers).map((tier) => (
                     tier !== 'storageBox' && (
@@ -305,6 +362,17 @@ function TierListPage() {
                     onChange={handleAddItem}
                     className="tier-input"
                 />
+            </div>
+
+            <div className="privacy-toggle">
+                <label>
+                    <input
+                        type="checkbox"
+                        checked={isPublic}
+                        onChange={() => setIsPublic(!isPublic)}
+                    />
+                    Make this tier list public
+                </label>
             </div>
 
             {submitError && <div className="error-message">{submitError}</div>}

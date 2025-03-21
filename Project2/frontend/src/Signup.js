@@ -38,6 +38,7 @@ function SignupPage() {
             await updateProfile(user, { displayName: formData.username });
             const idToken = await user.getIdToken();
             console.log("Created ", idToken);
+            // In the handleSubmit function in Signup.js
             const response = await fetch('http://localhost:8080/api/auth/save-user', {
                 method: 'POST',
                 headers: {
@@ -55,11 +56,13 @@ function SignupPage() {
 
             if (data.success) {
                 localStorage.setItem("username", formData.username);
+                localStorage.setItem("userId", uid); // Store the userId right away
 
                 alert("Account created successfully!");
                 navigate("/login"); // Redirect to login page
             } else {
-                throw new Error(data.error || "Failed to create account in database");
+                // Use the error message from the response if available
+                setError(data.error || "Failed to create account in database");
             }
         } catch (error) {
             setError(error.message);
