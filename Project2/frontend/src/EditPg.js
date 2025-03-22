@@ -114,43 +114,6 @@ function EditPg() {
         }
     }
 
-    // Delete user data function
-    async function deleteInfo() {
-        if (!window.confirm("Are you sure you want to delete all your data? This action cannot be undone.")) {
-            return;
-        }
-
-        setLoading(true);
-        setError("");
-
-        try {
-            const user = auth.currentUser;
-
-            if (!user) {
-                throw new Error("You must be logged in to delete your data");
-            }
-            const idToken = await user.getIdToken();
-            const response = await fetch(`http://localhost:8080/api/users/${userId}/data`, {
-                method: "DELETE",
-                headers: {
-                    "Authorization": `Bearer ${idToken}`
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error("Failed to delete user data");
-            }
-
-            setMessage("User data successfully deleted");
-
-        } catch (error) {
-            console.error("Error deleting user data:", error);
-            setError(error.message || "Failed to delete user data");
-        } finally {
-            setLoading(false);
-        }
-    }
-
     const handleSignOut = () => {
         localStorage.removeItem("isSignedIn");
         localStorage.removeItem("username");
@@ -185,9 +148,6 @@ function EditPg() {
             <div className="btn-group">
                 <button onClick={deleteAccount} className="btn danger-btn" disabled={loading}>
                     {loading ? "Processing..." : "Delete Account"}
-                </button>
-                <button onClick={deleteInfo} className="btn warning-btn" disabled={loading}>
-                    {loading ? "Processing..." : "Delete My Data"}
                 </button>
             </div>
         </div>
