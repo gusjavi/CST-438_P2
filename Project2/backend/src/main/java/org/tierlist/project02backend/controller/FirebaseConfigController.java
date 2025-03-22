@@ -11,7 +11,7 @@ public class FirebaseConfigController {
 
     @GetMapping("/firebase-config")
     public Map<String, String> getFirebaseConfig() {
-        return Map.of(
-                
+        return Map.of();
+
     }
 }

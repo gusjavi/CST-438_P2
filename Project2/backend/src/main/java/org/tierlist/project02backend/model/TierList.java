@@ -34,7 +34,7 @@ public class TierList {
     // not sure about this, needs testing tbh
 //    @OneToMany(mappedBy = "tierList", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 //    private List<TierListLike> likes;
-    
+
     private User creator;
 
     public TierList() {
