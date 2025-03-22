@@ -114,6 +114,26 @@ public class TierListController {
     public List<TierList> getUserTierLists(@PathVariable String userId) {
         return tierListService.getTierListsByUser(userId);
     }
+    @PutMapping("/{id}")
+    public ResponseEntity<TierList> updateTierList(@PathVariable Long id, @RequestBody TierList tierList) {
+        return ResponseEntity.ok(tierListService.updateTierList(id, tierList));
+    }
+
+    @DeleteMapping("/{tierListId}/items/{itemId}")
+    public ResponseEntity<?> deleteTierListItem(
+            @PathVariable Long tierListId,
+            @PathVariable Long itemId) {
+        tierListService.deleteTierListItem(tierListId, itemId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{tierListId}/items/{itemId}")
+    public ResponseEntity<TierListItem> updateTierListItem(
+            @PathVariable Long tierListId,
+            @PathVariable Long itemId,
+            @RequestBody TierListItem item) {
+        return ResponseEntity.ok(tierListService.updateTierListItem(tierListId, itemId, item));
+    }
 
     // New endpoint for paginated, sorted, and filtered tier lists
 //    @GetMapping("/paginated")

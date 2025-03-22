@@ -347,7 +347,11 @@ function LandingPg() {
             ) : (
                 <div className="tier-list-wrapper">
                     {tierLists.length > 0 ? tierLists.map((tierList) => (
-                        <TierListDisplay key={tierList.id} tierList={tierList} />
+                        <TierListDisplay
+                            key={tierList.id}
+                            tierList={tierList}
+                            isOwner={tierList.creator?.userId === localStorage.getItem("userId")}
+                        />
                     )) : (
                         <p>No tier lists available.</p>
                     )}
@@ -362,7 +366,11 @@ function LandingPg() {
                             userTierLists.length > 0 ? (
                                 <div className="user-tier-lists">
                                     {userTierLists.map(tierList => (
-                                        <TierListDisplay key={tierList.id} tierList={tierList} />
+                                        <TierListDisplay
+                                            key={tierList.id}
+                                            tierList={tierList}
+                                            isOwner={true}
+                                        />
                                     ))}
                                 </div>
                             ) : (
@@ -382,7 +390,14 @@ function LandingPg() {
     );
 }
 
-function TierListDisplay({ tierList }) {
+function TierListDisplay({ tierList, isOwner }) {
+    const navigate = useNavigate();
+
+    const handleEdit = () => {
+        console.log({ tierList });
+        navigate(`/edit_tierlist/${tierList.id}`);
+    };
+
     return (
         <div className="tier-list-container">
             <h2>{tierList.name}</h2>
@@ -411,7 +426,12 @@ function TierListDisplay({ tierList }) {
                     </div>
                 ))}
             </div>
-            <h2> ❤️ #{tierList.likes || 0}</h2>
+            <div className="tier-actions">
+                <h2> ❤️ #{tierList.likes || 0}</h2>
+                {isOwner && (
+                    <button onClick={handleEdit} className="edit-btn">Edit Tierlist</button>
+                )}
+            </div>
         </div>
     );
 }

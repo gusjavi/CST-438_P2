@@ -12,4 +12,5 @@ public interface TierListRatingRepository extends JpaRepository<TierListRating, 
 
     @Query("SELECT r FROM TierListRating r WHERE r.user.userId = ?1 AND r.tierListItem.id = ?2")
     Optional<TierListRating> findByUserIdAndTierListItemId(String userId, Long itemId);
+    void deleteByTierListItemId(Long itemId);
 }
