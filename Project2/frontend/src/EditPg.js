@@ -23,14 +23,52 @@ function EditPg() {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     }
 
-    function handleSubmit(e) {
+    async function handleSubmit(e) {
         e.preventDefault();
-        // Implement profile update logic here
-        setMessage("Profile updated successfully!");
-        navigate("/");
+        setLoading(true);
+        setError("");
+        setMessage("");
+
+        try {
+            const user = auth.currentUser;
+
+            if (!user) {
+                throw new Error("You must be logged in to update your profile");
+            }
+
+            const idToken = await user.getIdToken();
+
+            if (!formData.username.trim()) {
+                throw new Error("Please enter a new username");
+            }
+
+            const response = await fetch(`http://localhost:8080/api/users/${userId}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${idToken}`
+                },
+                body: JSON.stringify({ username: formData.username }) // Ensure correct JSON structure
+            });
+
+
+            if (!response.ok) {
+                throw new Error("Failed to update username");
+            }
+
+            localStorage.setItem("username", formData.username);
+            setUsername(formData.username);
+            setFormData({ ...formData, username: "" });
+            setMessage("Username updated successfully!");
+
+        } catch (error) {
+            console.error("Error updating username:", error);
+            setError(error.message || "Failed to update username");
+        } finally {
+            setLoading(false);
+        }
     }
 
-    // Delete account function
     async function deleteAccount() {
         if (!window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
             return;
@@ -45,11 +83,7 @@ function EditPg() {
             if (!user) {
                 throw new Error("You must be logged in to delete your account");
             }
-
-            // Get the auth token for backend requests
             const idToken = await user.getIdToken();
-
-            // Delete user from backend database first
             const response = await fetch(`http://localhost:8080/api/users/${userId}`, {
                 method: "DELETE",
                 headers: {
@@ -61,10 +95,7 @@ function EditPg() {
                 throw new Error("Failed to delete user from database");
             }
 
-            // Now delete from Firebase Auth
             await deleteUser(user);
-
-            // Clear local storage and update state
             localStorage.removeItem("isSignedIn");
             localStorage.removeItem("username");
             localStorage.removeItem("userId");
@@ -73,8 +104,6 @@ function EditPg() {
             setUsername("Guest");
             setSignedIn(false);
             setMessage("Account successfully deleted");
-
-            // Redirect to home page
             navigate("/");
 
         } catch (error) {
@@ -100,11 +129,7 @@ function EditPg() {
             if (!user) {
                 throw new Error("You must be logged in to delete your data");
             }
-
-            // Get the auth token for backend requests
             const idToken = await user.getIdToken();
-
-            // This endpoint would need to be implemented on your backend
             const response = await fetch(`http://localhost:8080/api/users/${userId}/data`, {
                 method: "DELETE",
                 headers: {

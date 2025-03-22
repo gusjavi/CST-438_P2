@@ -40,7 +40,7 @@ function SignupPage() {
             console.log("Created ", idToken);
             // In the handleSubmit function in Signup.js
             const response = await fetch('http://localhost:8080/api/auth/save-user', {
-                method: 'POST',
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${idToken}`

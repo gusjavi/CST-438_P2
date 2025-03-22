@@ -16,11 +16,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
-
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -66,18 +68,28 @@ public class UserController {
         return new ResponseEntity<>(newUser, HttpStatus.CREATED);
     }
 
-    // Update user
-    @PutMapping("/{userId}")
-    public ResponseEntity<User> updateUser(@PathVariable String userId, @RequestBody User userDetails) {
-        Optional<User> userData = userRepository.findById(userId);
+    @PatchMapping("/{userId}")
+    public ResponseEntity<User> partialUpdateUser(
+            @PathVariable String userId,
+            @RequestBody Map<String, Object> updates,
+            @RequestHeader("Authorization") String token) {
 
-        if (userData.isPresent()) {
+        try {
+            Optional<User> userData = userRepository.findById(userId);
+            if (!userData.isPresent()) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
             User user = userData.get();
-            user.setName(userDetails.getName());
-            user.setEmail(userDetails.getEmail());
+
+            if (updates.containsKey("username") && updates.get("username") instanceof String) {
+                user.setName((String) updates.get("username"));
+            }
+
             return new ResponseEntity<>(userRepository.save(user), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            logger.error("Error in PATCH user: ", e);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
