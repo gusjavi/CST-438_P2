@@ -60,6 +60,18 @@ public class UserController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+    @GetMapping("/by-email/{email}")
+    public ResponseEntity<?> getUserIdByEmail(@PathVariable String email) {
+        Optional<User> user = userRepository.findByEmail(email);
+
+        if (user.isPresent()) {
+            Map<String, String> response = new HashMap<>();
+            response.put("userId", user.get().getUserId());
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
 
     // Create new user
     @PostMapping
