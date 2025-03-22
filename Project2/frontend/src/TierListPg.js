@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./innerPages.css";
 
-// Dropdown component moved outside the main component
 function Dropdown({ options, onSelect }) {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
@@ -209,14 +208,10 @@ function TierListPage() {
             const tierList = await tierListResponse.json();
             const tierListId = tierList.id;
 
-            // Process each tier (except storage box)
             for (const [tierName, items] of Object.entries(tiers)) {
                 if (tierName === 'storageBox') continue;
-
-                // Process each item in the tier
                 for (const item of items) {
                     try {
-                        // First create the item
                         const itemData = {
                             itemName: item.text,
                             imageUrl: item.image
@@ -234,13 +229,9 @@ function TierListPage() {
                         if (!itemResponse.ok) {
                             const errorData = await itemResponse.json().catch(() => ({}));
                             console.error(`Failed to add item ${item.text}: ${errorData.message || 'Unknown error'}`);
-                            continue; // Continue with other items
+                            continue;
                         }
-
                         const savedItem = await itemResponse.json();
-
-                        // Then rate the item to assign it to the tier
-                        // Convert tier name to proper enum format as expected by backend
                         const tierRanking = tierName.toUpperCase();
 
                         const ratingResponse = await fetch(`${API_BASE_URL}/api/tierlists/${tierListId}/items/${savedItem.id}/rate?userId=${encodeURIComponent(userId)}&ranking=${tierRanking}`, {
@@ -288,8 +279,6 @@ function TierListPage() {
                 value={tierListTitle}
                 onChange={(e) => setTierListTitle(e.target.value)}
             />
-
-            {/* Using the Dropdown component */}
             <div className="category-selector">
                 <p>Category: {selectedCategory}</p>
                 <Dropdown options={categories} onSelect={handleCategorySelect} />

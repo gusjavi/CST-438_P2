@@ -48,8 +48,8 @@ function LandingPg() {
     const navigate = useNavigate();
     const [isSignedIn, setSignedIn] = useState(localStorage.getItem("isSignedIn") === "true");
     const [username, setUsername] = useState(localStorage.getItem("username") || "Guest");
-    const [allTierLists, setAllTierLists] = useState([]); // Store all tier lists
-    const [filteredTierLists, setFilteredTierLists] = useState([]); // Store filtered tier lists
+    const [allTierLists, setAllTierLists] = useState([]);
+    const [filteredTierLists, setFilteredTierLists] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -61,7 +61,6 @@ function LandingPg() {
     useEffect(() => {
         fetchTierLists();
 
-        // If the user is signed in, fetch their tier lists
         if (isSignedIn) {
             fetchUserTierLists().then(lists => {
                 setUserTierLists(lists);
@@ -74,7 +73,6 @@ function LandingPg() {
             setSignedIn(newSignedInState);
             setUsername(localStorage.getItem("username") || "Guest");
 
-            // If sign-in state changed to true, fetch user's tier lists
             if (newSignedInState && !isSignedIn) {
                 fetchUserTierLists().then(lists => {
                     setUserTierLists(lists);
@@ -87,7 +85,6 @@ function LandingPg() {
         return () => window.removeEventListener("storage", handleStorageChange);
     }, [isSignedIn]);
 
-    // Filter tier lists whenever the selected category changes
     useEffect(() => {
         filterTierLists(allTierLists, selectedCategory);
         filterUserTierLists(userTierLists, selectedCategory);
@@ -97,7 +94,6 @@ function LandingPg() {
         setSelectedCategory(category);
     };
 
-    // Function to filter tier lists based on category
     const filterTierLists = (lists, category) => {
         if (category === "General") {
             setFilteredTierLists(lists);
@@ -106,7 +102,6 @@ function LandingPg() {
         }
     };
 
-    // Function to filter user tier lists based on category
     const filterUserTierLists = (lists, category) => {
         if (category === "General") {
             setFilteredUserTierLists(lists);
@@ -115,7 +110,6 @@ function LandingPg() {
         }
     };
 
-    // Add a new function to fetch user's tier lists
     const fetchUserTierLists = async () => {
         try {
             const userId = localStorage.getItem("userId");
@@ -234,8 +228,6 @@ function LandingPg() {
         try {
             setIsLoading(true);
             setError(null);
-
-            // Fetch all tier lists from the API
             const response = await fetch('http://localhost:8080/api/tierlists', {
                 method: 'GET',
                 credentials: 'include',

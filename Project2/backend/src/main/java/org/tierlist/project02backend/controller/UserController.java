@@ -110,30 +110,21 @@ public class UserController {
     public ResponseEntity<HttpStatus> deleteUser(@PathVariable String userId,
                                                  @RequestHeader("Authorization") String token) {
         try {
-            // Extract token
             String idToken = token.replace("Bearer ", "");
-
-            // Verify the Firebase token and get user info
             UserRecord userRecord = authService.verifyToken(idToken);
             String authenticatedUid = userRecord.getUid();
-
-            // Security check: Only allow users to delete their own account
             if (!authenticatedUid.equals(userId)) {
                 return new ResponseEntity<>(HttpStatus.FORBIDDEN);
             }
 
-            // Delete the user from your database
             userRepository.deleteById(userId);
-
-            // Note: This doesn't delete the user from Firebase Auth
-            // That's handled on the client side
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    // Add endpoint to delete user data but keep the account
+    // Add endpoint to delete user data but keep the account doesnt work
     @DeleteMapping("/{userId}/data")
     public ResponseEntity<HttpStatus> deleteUserData(@PathVariable String userId,
                                                      @RequestHeader("Authorization") String token) {
@@ -141,20 +132,12 @@ public class UserController {
             // Extract token
             String idToken = token.replace("Bearer ", "");
 
-            // Verify the Firebase token and get user info
             UserRecord userRecord = authService.verifyToken(idToken);
             String authenticatedUid = userRecord.getUid();
 
-            // Security check: Only allow users to delete their own data
             if (!authenticatedUid.equals(userId)) {
                 return new ResponseEntity<>(HttpStatus.FORBIDDEN);
             }
-
-            // Implement logic to delete user data (like tier lists, etc.)
-            // This will depend on your data model
-            // For example:
-            // tierListRepository.deleteByUserId(userId);
-
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);

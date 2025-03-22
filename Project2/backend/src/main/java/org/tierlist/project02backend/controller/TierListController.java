@@ -53,7 +53,6 @@ public class TierListController {
         }
     }
 
-    // You might want to keep the original method with a different endpoint name
     @GetMapping("/all")
     public List<TierList> getAllTierLists() {
         return tierListService.getAllTierLists();

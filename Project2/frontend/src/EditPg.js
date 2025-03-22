@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
 import { useNavigate } from "react-router-dom";
 import "./innerPages.css";
-import { auth } from "./firebaseCOnfig"; // Make sure path is correct
+import { auth } from "./firebaseCOnfig";
 import { deleteUser, EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
 
 function EditPg() {
