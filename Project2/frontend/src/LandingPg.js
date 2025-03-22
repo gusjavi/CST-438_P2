@@ -1,35 +1,128 @@
-import React, { useState, useEffect } from "react";
+import React, {useState, useEffect, useRef} from "react";
 import { useNavigate } from "react-router-dom";
 import "./innerPages.css";
+function Dropdown({ options, onSelect }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const dropdownRef = useRef(null);
 
+    const toggleDropdown = () => {
+        setIsOpen(!isOpen);
+    };
+
+    const handleOptionClick = (option) => {
+        onSelect(option);
+        setIsOpen(false);
+    };
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
+    return (
+        <div className="dropdown" ref={dropdownRef}>
+            <button onClick={toggleDropdown}>
+                Select a Category
+            </button>
+            {isOpen && (
+                <ul className="dropdown-menu">
+                    {options.map((option) => (
+                        <li key={option} onClick={() => handleOptionClick(option)}>
+                            {option}
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </div>
+    );
+}
 function LandingPg() {
     const navigate = useNavigate();
     const [isSignedIn, setSignedIn] = useState(localStorage.getItem("isSignedIn") === "true");
     const [username, setUsername] = useState(localStorage.getItem("username") || "Guest");
-    const [tierLists, setTierLists] = useState([]);
+    const [allTierLists, setAllTierLists] = useState([]);
+    const [filteredTierLists, setFilteredTierLists] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [userTierLists, setUserTierLists] = useState([]);
+    const [filteredUserTierLists, setFilteredUserTierLists] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState("General");
+    const categories = ["General", "Anime", "Food", "Places", "Music", "Games", "Movies", "Animals"];
 
     useEffect(() => {
         fetchTierLists();
 
+        if (isSignedIn) {
+            fetchUserTierLists().then(lists => {
+                setUserTierLists(lists);
+                filterUserTierLists(lists, selectedCategory);
+            });
+        }
+
         const handleStorageChange = () => {
-            setSignedIn(localStorage.getItem("isSignedIn") === "true");
+            const newSignedInState = localStorage.getItem("isSignedIn") === "true";
+            setSignedIn(newSignedInState);
             setUsername(localStorage.getItem("username") || "Guest");
+
+            if (newSignedInState && !isSignedIn) {
+                fetchUserTierLists().then(lists => {
+                    setUserTierLists(lists);
+                    filterUserTierLists(lists, selectedCategory);
+                });
+            }
         };
 
         window.addEventListener("storage", handleStorageChange);
         return () => window.removeEventListener("storage", handleStorageChange);
-    }, []);
+    }, [isSignedIn]);
 
-    const fetchTierLists = async () => {
+    useEffect(() => {
+        filterTierLists(allTierLists, selectedCategory);
+        filterUserTierLists(userTierLists, selectedCategory);
+    }, [selectedCategory, allTierLists, userTierLists]);
+
+    const handleCategorySelect = (category) => {
+        setSelectedCategory(category);
+    };
+
+    const filterTierLists = (lists, category) => {
+        if (category === "General") {
+            setFilteredTierLists(lists);
+        } else {
+            setFilteredTierLists(lists.filter(list => list.category === category));
+        }
+    };
+
+    const filterUserTierLists = (lists, category) => {
+        if (category === "General") {
+            setFilteredUserTierLists(lists);
+        } else {
+            setFilteredUserTierLists(lists.filter(list => list.category === category));
+        }
+    };
+
+    const fetchUserTierLists = async () => {
         try {
+            const userId = localStorage.getItem("userId");
+
+            if (!userId) {
+                console.error("User ID not found in localStorage");
+                return [];
+            }
+
             setIsLoading(true);
             setError(null);
 
-            console.log("Fetching tier lists...");
-            const response = await fetch('http://localhost:8080/api/tierlists', {
+            const response = await fetch(`http://localhost:8080/api/tierlists/user/${userId}`, {
                 method: 'GET',
                 credentials: 'include',
                 headers: {
@@ -43,15 +136,10 @@ function LandingPg() {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
 
-            const data = await response.json();
+            const userLists = await response.json();
 
-            if (!Array.isArray(data)) {
-                console.error("Expected an array but received:", data);
-                setTierLists([]);
-                throw new Error("Invalid data format received from server");
-            }
-
-            const processedLists = await Promise.all(data.map(async (list) => {
+            // Process the user's tier lists like you do with the public lists
+            const processedLists = await Promise.all(userLists.map(async (list) => {
                 try {
                     const itemsResponse = await fetch(`http://localhost:8080/api/tierlists/${list.id}/items`, {
                         credentials: 'include'
@@ -64,6 +152,7 @@ function LandingPg() {
                             name: list.title,
                             creator: list.user_id,
                             description: list.description,
+                            category: list.category || "General",
                             tiers: { S: [], A: [], B: [], C: [], D: [], F: [] },
                             likes: 0
                         };
@@ -74,13 +163,14 @@ function LandingPg() {
                     const ratingsResponse = await fetch(`http://localhost:8080/api/tierlists/${list.id}/ratings`, {
                         credentials: 'include'
                     });
-                    console.log("Ratings data structure:", ratingsResponse[0]);
+
                     if (!ratingsResponse.ok) {
                         console.error(`Error fetching ratings for list ${list.id}: ${ratingsResponse.status}`);
                         return {
                             id: list.id,
                             name: list.title,
                             description: list.description,
+                            category: list.category || "General",
                             tiers: organizeTierItems(items, []),
                             likes: 0
                         };
@@ -107,6 +197,7 @@ function LandingPg() {
                         name: list.title,
                         description: list.description,
                         creator: list.creator,
+                        category: list.category || "General",
                         tiers: tiers,
                         likes: likesCount
                     };
@@ -116,26 +207,137 @@ function LandingPg() {
                         id: list.id,
                         name: list.title,
                         description: list.description,
+                        category: list.category || "General",
                         tiers: { S: [], A: [], B: [], C: [], D: [], F: [] },
                         likes: 0
                     };
                 }
             }));
 
-            setTierLists(processedLists);
+            return processedLists;
+        } catch (err) {
+            console.error("Error fetching user tier lists:", err);
+            setError("Failed to load your tier lists. Please try again later.");
+            return [];
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const fetchTierLists = async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
+            const response = await fetch('http://localhost:8080/api/tierlists', {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                }
+            });
+
+            if (!response.ok) {
+                console.error(`HTTP error! Status: ${response.status}`);
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (!Array.isArray(data)) {
+                console.error("Expected an array but received:", data);
+                setAllTierLists([]);
+                setFilteredTierLists([]);
+                throw new Error("Invalid data format received from server");
+            }
+
+            const processedLists = await Promise.all(data.map(async (list) => {
+                try {
+                    const itemsResponse = await fetch(`http://localhost:8080/api/tierlists/${list.id}/items`, {
+                        credentials: 'include'
+                    });
+
+                    if (!itemsResponse.ok) {
+                        console.error(`Error fetching items for list ${list.id}: ${itemsResponse.status}`);
+                        return {
+                            id: list.id,
+                            name: list.title,
+                            creator: list.user_id,
+                            description: list.description,
+                            category: list.category || "General",
+                            tiers: { S: [], A: [], B: [], C: [], D: [], F: [] },
+                            likes: 0
+                        };
+                    }
+
+                    const items = await itemsResponse.json();
+
+                    const ratingsResponse = await fetch(`http://localhost:8080/api/tierlists/${list.id}/ratings`, {
+                        credentials: 'include'
+                    });
+                    if (!ratingsResponse.ok) {
+                        console.error(`Error fetching ratings for list ${list.id}: ${ratingsResponse.status}`);
+                        return {
+                            id: list.id,
+                            name: list.title,
+                            description: list.description,
+                            category: list.category || "General",
+                            tiers: organizeTierItems(items, []),
+                            likes: 0
+                        };
+                    }
+
+                    const ratings = await ratingsResponse.json();
+
+                    const likesResponse = await fetch(`http://localhost:8080/api/tierlists/${list.id}/likes/count`, {
+                        credentials: 'include'
+                    });
+
+                    let likesCount = 0;
+                    if (likesResponse.ok) {
+                        const likesData = await likesResponse.json();
+                        likesCount = likesData.count;
+                    } else {
+                        console.error(`Error fetching likes for list ${list.id}: ${likesResponse.status}`);
+                    }
+
+                    const tiers = organizeTierItems(items, ratings);
+
+                    return {
+                        id: list.id,
+                        name: list.title,
+                        description: list.description,
+                        creator: list.creator,
+                        category: list.category || "General",
+                        tiers: tiers,
+                        likes: likesCount
+                    };
+                } catch (err) {
+                    console.error(`Error processing list ${list.id}:`, err);
+                    return {
+                        id: list.id,
+                        name: list.title,
+                        description: list.description,
+                        category: list.category || "General",
+                        tiers: { S: [], A: [], B: [], C: [], D: [], F: [] },
+                        likes: 0
+                    };
+                }
+            }));
+
+            setAllTierLists(processedLists);
+            filterTierLists(processedLists, selectedCategory);
         } catch (err) {
             console.error("Error fetching tier lists:", err);
             setError("Failed to load tier lists. Please try again later.");
-            setTierLists([]);
+            setAllTierLists([]);
+            setFilteredTierLists([]);
         } finally {
             setIsLoading(false);
         }
     };
 
     const organizeTierItems = (items, ratings) => {
-        console.log("First item:", items[0]);
-        console.log("First rating:", ratings[0]);
-
         const tiers = {
             S: [],
             A: [],
@@ -147,26 +349,14 @@ function LandingPg() {
 
         items.forEach(item => {
             const itemId = item.id;
-            console.log(`Processing item ID: ${itemId}, Name: ${item.itemName}`);
-
-            // Match ratings to items using the id
             const itemRatings = ratings.filter(rating => rating.id === itemId);
-
-            console.log(`Found ${itemRatings.length} ratings for item ${itemId}`);
-
             if (itemRatings.length > 0) {
-                const tierRating = itemRatings[0].ranking; // Just use the first rating
-                // Or use average if you have multiple ratings per item
-                // const tierRating = calculateAverageRating(itemRatings);
-
-                console.log(`Item ${itemId} rating: ${tierRating}`);
+                const tierRating = itemRatings[0].ranking;
                 tiers[tierRating].push(item);
             } else {
-                // Default unrated items to F tier
                 tiers.F.push(item);
             }
         });
-
         return tiers;
     };
 
@@ -229,7 +419,10 @@ function LandingPg() {
             {isSignedIn && (
                 <button onClick={() => setShowModal(true)} className="btn">My Tier List</button>
             )}
-
+            <div className="category-selector">
+                <p>Category: {selectedCategory}</p>
+                <Dropdown options={categories} onSelect={handleCategorySelect} />
+            </div>
             {isLoading ? (
                 <p>Loading tier lists...</p>
             ) : error ? (
@@ -239,30 +432,54 @@ function LandingPg() {
                 </div>
             ) : (
                 <div className="tier-list-wrapper">
-                    {tierLists.length > 0 ? tierLists.map((tierList) => (
-                        <TierListDisplay key={tierList.id} tierList={tierList} />
+                    {filteredTierLists.length > 0 ? filteredTierLists.map((tierList) => (
+                        <TierListDisplay
+                            key={tierList.id}
+                            tierList={tierList}
+                            isOwner={tierList.creator?.userId === localStorage.getItem("userId")}
+                        />
                     )) : (
-                        <p>No tier lists available.</p>
+                        <p>No tier lists available for the {selectedCategory} category.</p>
                     )}
                 </div>
             )}
 
-            {showModal && tierLists.length > 0 && (
+            {showModal && (
                 <div className="modal-overlay">
                     <div className="modal-content">
-                        <h2>{username}'s Tier List</h2>
+                        <h2>{username}'s Tier Lists</h2>
+                        <div className="category-selector">
+                            <p>Filter by Category: {selectedCategory}</p>
+                            <Dropdown options={categories} onSelect={handleCategorySelect} />
+                        </div>
                         {isSignedIn && username !== "Guest" ? (
-
-                            tierLists.find(list => list.creator?.name === username) ? (
-                                <TierListDisplay tierList={tierLists.find(list => list.creator?.name === username)} />
+                            filteredUserTierLists.length > 0 ? (
+                                <div className="user-tier-lists">
+                                    {filteredUserTierLists.map(tierList => (
+                                        <TierListDisplay
+                                            key={tierList.id}
+                                            tierList={tierList}
+                                            isOwner={true}
+                                        />
+                                    ))}
+                                </div>
                             ) : (
-                                <p className={"error_notl"}>You haven't created any tier lists yet.</p>
+                                <p className={"error_notl"}>
+                                    {selectedCategory === "General"
+                                        ? "You haven't created any tier lists yet."
+                                        : `You haven't created any tier lists in the ${selectedCategory} category yet.`}
+                                </p>
                             )
                         ) : (
-                            <TierListDisplay tierList={tierLists[0]} />
+                            <p>Please sign in to view your tier lists.</p>
                         )}
                         <div className="btn-group">
-                            <button className="close-btn" onClick={() => updatePg()}>Update</button>
+                            <button className="close-btn" onClick={() => {
+                                fetchUserTierLists().then(lists => {
+                                    setUserTierLists(lists);
+                                    filterUserTierLists(lists, selectedCategory);
+                                });
+                            }}>Refresh</button>
                             <button className="close-btn" onClick={() => setShowModal(false)}>Close</button>
                         </div>
                     </div>
@@ -272,10 +489,18 @@ function LandingPg() {
     );
 }
 
-function TierListDisplay({ tierList }) {
+function TierListDisplay({ tierList, isOwner }) {
+    const navigate = useNavigate();
+
+    const handleEdit = () => {
+        console.log({ tierList });
+        navigate(`/edit_tierlist/${tierList.id}`);
+    };
+
     return (
         <div className="tier-list-container">
             <h2>{tierList.name}</h2>
+            <p>Category: {tierList.category || "General"}</p>
             <div className="tier-box">
                 {Object.keys(tierList.tiers).map((tier) => (
                     <div key={tier} className={`tier ${tier.toLowerCase()}`}>
@@ -301,7 +526,12 @@ function TierListDisplay({ tierList }) {
                     </div>
                 ))}
             </div>
-            <h2> ❤️ #{tierList.likes || 0}</h2>
+            <div className="tier-actions">
+                <h2> ❤️ #{tierList.likes || 0}</h2>
+                {isOwner && (
+                    <button onClick={handleEdit} className="edit-btn">Edit Tierlist</button>
+                )}
+            </div>
         </div>
     );
 }

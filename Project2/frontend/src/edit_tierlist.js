@@ -1,8 +1,8 @@
-import React, { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import "./innerPages.css";
 
-function Dropdown({ options, onSelect }) {
+function Dropdown({ options, onSelect, initialValue }) {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
 
@@ -52,29 +52,127 @@ const initialTiers = {
     B: [],
     C: [],
     D: [],
-    F:[],
+    F: [],
     storageBox: []
 };
 
-const API_BASE_URL = 'http://localhost:8080';
-
-function TierListPage() {
+function EditTierlist() {
+    const { id } = useParams();
     const navigate = useNavigate();
     const [tiers, setTiers] = useState(initialTiers);
     const [draggingItem, setDraggingItem] = useState(null);
-    const [isSignedIn, setSignedIn] = useState(localStorage.getItem("isSignedIn") === "true");
-    const [username, setUsername] = useState(localStorage.getItem("username") || "Guest");
     const [tierListTitle, setTierListTitle] = useState("");
+    const [description, setDescription] = useState("");
+    const [isPublic, setIsPublic] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState(null);
-    const [isPublic, setIsPublic] = useState(true);
+    const [message, setMessage] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("General");
+    const [username, setUsername] = useState(localStorage.getItem("username") || "Guest");
+    const [isSignedIn, setIsSignedIn] = useState(localStorage.getItem("isSignedIn") === "true");
+
     const categories = ["General", "Anime", "Food", "Places", "Music", "Games", "Movies", "Animals"];
 
     useEffect(() => {
-        localStorage.setItem("isSignedIn", isSignedIn);
-    }, [isSignedIn, isPublic]);
+        const userId = localStorage.getItem("userId");
+        if (!userId) {
+            navigate("/login");
+            return;
+        }
 
+        fetchTierList();
+    }, [id, navigate]);
+
+    const fetchTierList = async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
+
+            // Reset tiers to prevent duplicates on reload
+            setTiers(JSON.parse(JSON.stringify(initialTiers)));
+
+            const response = await fetch(`http://localhost:8080/api/tierlists/${id}`, {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem("token")}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            setTierListTitle(data.title);
+            setDescription(data.description);
+            setIsPublic(data.public);
+            setSelectedCategory(data.category || "General");
+
+            const itemsResponse = await fetch(`http://localhost:8080/api/tierlists/${id}/items`, {
+                credentials: 'include',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem("token")}`
+                }
+            });
+
+            if (!itemsResponse.ok) {
+                throw new Error(`Error fetching items: ${itemsResponse.status}`);
+            }
+
+            const itemsData = await itemsResponse.json();
+
+            const ratingsResponse = await fetch(`http://localhost:8080/api/tierlists/${id}/ratings`, {
+                credentials: 'include',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem("token")}`
+                }
+            });
+
+            // Create a map to store item ratings
+            let ratingsMap = {};
+            if (ratingsResponse.ok) {
+                const ratingsData = await ratingsResponse.json();
+                ratingsData.forEach(rating => {
+                    ratingsMap[rating.itemId] = rating.ranking;
+                });
+            }
+
+            // Create a new tiers object to populate with items
+            const newTiers = JSON.parse(JSON.stringify(initialTiers));
+
+            // Place items in appropriate tiers based on ratings
+            itemsData.forEach(item => {
+                const formattedItem = {
+                    id: item.id,
+                    text: item.itemName,
+                    image: item.imageUrl.startsWith('data:') ? item.imageUrl : `data:image/jpeg;base64,${item.imageUrl}`
+                };
+
+                // Check if there's a rating for this item
+                const tierRanking = ratingsMap[item.id];
+                if (tierRanking && newTiers[tierRanking]) {
+                    // Place item in its rated tier
+                    newTiers[tierRanking].push(formattedItem);
+                } else {
+                    // If no rating, place in storage box
+                    newTiers.storageBox.push(formattedItem);
+                }
+            });
+
+            setTiers(newTiers);
+        } catch (err) {
+            console.error("Error fetching tier list details:", err);
+            setError("Failed to load tier list details. Please try again later.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handleAddItem = (event) => {
         const file = event.target.files[0];
@@ -143,7 +241,7 @@ function TierListPage() {
         localStorage.removeItem("isSignedIn");
         localStorage.removeItem("username");
         setUsername("Guest");
-        setSignedIn(false);
+        setIsSignedIn(false);
         navigate("/");
     };
 
@@ -151,14 +249,13 @@ function TierListPage() {
         setSelectedCategory(category);
     };
 
-    // This is the updated submitTierList function
-    const submitTierList = async () => {
+    const updateTierList = async () => {
         if (!tierListTitle.trim()) {
             setSubmitError("Please enter a title for your tier list");
             return;
         }
         if (!isSignedIn) {
-            setSubmitError("Please sign in to create a tier list");
+            setSubmitError("Please sign in to update a tier list");
             return;
         }
 
@@ -180,10 +277,10 @@ function TierListPage() {
                 throw new Error("User ID not found. Please sign in again.");
             }
 
-            // Create tier list first
             const tierListData = {
+                id: id,
                 title: tierListTitle,
-                description: `${username}'s tier list for ${tierListTitle}`,
+                description: description,
                 isPublic: isPublic,
                 category: selectedCategory,
                 creator: {
@@ -191,8 +288,8 @@ function TierListPage() {
                 }
             };
 
-            const tierListResponse = await fetch(`${API_BASE_URL}/api/tierlists`, {
-                method: 'POST',
+            const tierListResponse = await fetch(`http://localhost:8080/api/tierlists/${id}`, {
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem("token")}`
@@ -202,49 +299,76 @@ function TierListPage() {
 
             if (!tierListResponse.ok) {
                 const errorData = await tierListResponse.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Failed to create tier list');
+                throw new Error(errorData.message || 'Failed to update tier list');
             }
-
-            const tierList = await tierListResponse.json();
-            const tierListId = tierList.id;
 
             for (const [tierName, items] of Object.entries(tiers)) {
                 if (tierName === 'storageBox') continue;
                 for (const item of items) {
                     try {
-                        const itemData = {
-                            itemName: item.text,
-                            imageUrl: item.image
-                        };
+                        if (item.id) {
+                            const itemData = {
+                                itemName: item.text,
+                                imageUrl: item.image
+                            };
 
-                        const itemResponse = await fetch(`${API_BASE_URL}/api/tierlists/${tierListId}/items`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${localStorage.getItem("token")}`
-                            },
-                            body: JSON.stringify(itemData)
-                        });
+                            const itemResponse = await fetch(`http://localhost:8080/api/tierlists/${id}/items/${item.id}`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${localStorage.getItem("token")}`
+                                },
+                                body: JSON.stringify(itemData)
+                            });
 
-                        if (!itemResponse.ok) {
-                            const errorData = await itemResponse.json().catch(() => ({}));
-                            console.error(`Failed to add item ${item.text}: ${errorData.message || 'Unknown error'}`);
-                            continue;
-                        }
-                        const savedItem = await itemResponse.json();
-                        const tierRanking = tierName.toUpperCase();
-
-                        const ratingResponse = await fetch(`${API_BASE_URL}/api/tierlists/${tierListId}/items/${savedItem.id}/rate?userId=${encodeURIComponent(userId)}&ranking=${tierRanking}`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${localStorage.getItem("token")}`
+                            if (!itemResponse.ok) {
+                                console.error(`Failed to update item ${item.text}`);
                             }
-                        });
 
-                        if (!ratingResponse.ok) {
-                            const errorData = await ratingResponse.json().catch(() => ({}));
-                            console.error(`Failed to rate item ${item.text}: ${errorData.message || 'Unknown error'}`);
+                            const tierRanking = tierName.toUpperCase();
+                            const ratingResponse = await fetch(`http://localhost:8080/api/tierlists/${id}/items/${item.id}/rate?userId=${encodeURIComponent(userId)}&ranking=${tierRanking}`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${localStorage.getItem("token")}`
+                                }
+                            });
+
+                            if (!ratingResponse.ok) {
+                                console.error(`Failed to rate item ${item.text}`);
+                            }
+                        } else {
+                            const itemData = {
+                                itemName: item.text,
+                                imageUrl: item.image
+                            };
+
+                            const itemResponse = await fetch(`http://localhost:8080/api/tierlists/${id}/items`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${localStorage.getItem("token")}`
+                                },
+                                body: JSON.stringify(itemData)
+                            });
+
+                            if (!itemResponse.ok) {
+                                console.error(`Failed to add item ${item.text}`);
+                                continue;
+                            }
+                            const savedItem = await itemResponse.json();
+                            const tierRanking = tierName.toUpperCase();
+                            const ratingResponse = await fetch(`http://localhost:8080/api/tierlists/${id}/items/${savedItem.id}/rate?userId=${encodeURIComponent(userId)}&ranking=${tierRanking}`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${localStorage.getItem("token")}`
+                                }
+                            });
+
+                            if (!ratingResponse.ok) {
+                                console.error(`Failed to rate item ${item.text}`);
+                            }
                         }
                     } catch (itemError) {
                         console.error("Error processing item:", itemError);
@@ -252,26 +376,54 @@ function TierListPage() {
                 }
             }
 
-            alert("Tier list created successfully!");
-            navigate(`/`);
+            for (const item of tiers.storageBox) {
+                if (item.id) {
+                    const itemData = {
+                        itemName: item.text,
+                        imageUrl: item.image
+                    };
+
+                    await fetch(`http://localhost:8080/api/tierlists/${id}/items/${item.id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem("token")}`
+                        },
+                        body: JSON.stringify(itemData)
+                    });
+                }
+            }
+
+            setMessage("Tier list updated successfully!");
+            setTimeout(() => {
+                navigate(`/`);
+            }, 1500);
 
         } catch (error) {
-            console.error("Error submitting tier list:", error);
-            setSubmitError(error.message || "Failed to create tier list. Please try again.");
+            console.error("Error updating tier list:", error);
+            setSubmitError(error.message || "Failed to update tier list. Please try again.");
         } finally {
             setIsSubmitting(false);
         }
     };
+
+    if (isLoading && Object.values(tiers).every(tier => tier.length === 0)) {
+        return <div className="loading">Loading tier list details...</div>;
+    }
+
     return (
         <div className="landing-container">
             <div className="header">
-                <h1>{username}'s Tier List</h1>
+                <h1>Edit: {tierListTitle}</h1>
                 {isSignedIn && <p onClick={handleSignOut} className="sign-out">Sign Out</p>}
             </div>
             <div className="btn-group">
                 <button onClick={() => navigate("/")} className="btn">Home</button>
                 <button onClick={() => navigate("/edit")} className="btn">Edit Account</button>
             </div>
+
+            {message && <div className="success-message">{message}</div>}
+
             <input
                 type="text"
                 placeholder="Tier List Title"
@@ -279,6 +431,7 @@ function TierListPage() {
                 value={tierListTitle}
                 onChange={(e) => setTierListTitle(e.target.value)}
             />
+
             <div className="category-selector">
                 <p>Category: {selectedCategory}</p>
                 <Dropdown options={categories} onSelect={handleCategorySelect} />
@@ -364,14 +517,14 @@ function TierListPage() {
             <div>
                 <button
                     className="btn"
-                    onClick={submitTierList}
+                    onClick={updateTierList}
                     disabled={isSubmitting}
                 >
-                    {isSubmitting ? "Creating..." : "Create Tier-List"}
+                    {isSubmitting ? "Updating..." : "Update Tier-List"}
                 </button>
             </div>
         </div>
     );
 }
 
-export default TierListPage;
+export default EditTierlist;

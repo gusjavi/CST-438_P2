@@ -161,4 +161,71 @@ public class TierListService {
         logger.info("Fetching tier lists for user {}", userId);
         return tierListRepository.findByCreatorUserId(userId);
     }
+    @Transactional
+    public TierList updateTierList(Long id, TierList updatedTierList) {
+        logger.info("Updating tier list with id: {}", id);
+        return tierListRepository.findById(id)
+                .map(tierList -> {
+                    tierList.setTitle(updatedTierList.getTitle());
+                    tierList.setDescription(updatedTierList.getDescription());
+                    tierList.setCategory(updatedTierList.getCategory());
+                    tierList.setPublic(updatedTierList.isPublic());
+                    return tierListRepository.save(tierList);
+                })
+                .orElseThrow(() -> {
+                    logger.error("TierList not found with id: {}", id);
+                    return new RuntimeException("TierList not found with id: " + id);
+                });
+    }
+
+    @Transactional
+    public void deleteTierListItem(Long tierListId, Long itemId) {
+        logger.info("Deleting item {} from tier list {}", itemId, tierListId);
+
+        TierListItem item = tierListItemRepository.findById(itemId)
+                .orElseThrow(() -> {
+                    logger.error("TierListItem not found with id: {}", itemId);
+                    return new RuntimeException("TierListItem not found with id: " + itemId);
+                });
+
+        // Verify the item belongs to the specified tierList
+        if (!item.getTierList().getId().equals(tierListId)) {
+            logger.error("Item {} does not belong to tier list {}", itemId, tierListId);
+            throw new RuntimeException("Item does not belong to the specified tier list");
+        }
+
+        // Delete all ratings for this item first
+        tierListRatingRepository.deleteByTierListItemId(itemId);
+
+        // Then delete the item
+        tierListItemRepository.deleteById(itemId);
+        logger.info("Successfully deleted item {} from tier list {}", itemId, tierListId);
+    }
+
+    @Transactional
+    public TierListItem updateTierListItem(Long tierListId, Long itemId, TierListItem updatedItem) {
+        logger.info("Updating item {} in tier list {}", itemId, tierListId);
+
+        return tierListItemRepository.findById(itemId)
+                .map(item -> {
+                    // Verify the item belongs to the specified tierList
+                    if (!item.getTierList().getId().equals(tierListId)) {
+                        logger.error("Item {} does not belong to tier list {}", itemId, tierListId);
+                        throw new RuntimeException("Item does not belong to the specified tier list");
+                    }
+
+                    // Update fields
+                    item.setItemName(updatedItem.getItemName());
+                    if (updatedItem.getImageUrl() != null) {
+                        item.setImageUrl(updatedItem.getImageUrl());
+                    }
+
+                    return tierListItemRepository.save(item);
+                })
+                .orElseThrow(() -> {
+                    logger.error("TierListItem not found with id: {}", itemId);
+                    return new RuntimeException("TierListItem not found with id: " + itemId);
+                });
+    }
+
 }

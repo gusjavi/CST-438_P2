@@ -99,7 +99,7 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/save-user")
+    @PutMapping("/save-user")
     public ResponseEntity<AuthResponse> saveUser(@RequestBody SignupRequest request,
                                                  @RequestHeader("Authorization") String token) {
         try {
