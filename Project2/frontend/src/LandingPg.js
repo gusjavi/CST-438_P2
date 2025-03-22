@@ -1,16 +1,62 @@
-import React, { useState, useEffect } from "react";
+import React, {useState, useEffect, useRef} from "react";
 import { useNavigate } from "react-router-dom";
 import "./innerPages.css";
+function Dropdown({ options, onSelect }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const dropdownRef = useRef(null);
 
+    const toggleDropdown = () => {
+        setIsOpen(!isOpen);
+    };
+
+    const handleOptionClick = (option) => {
+        onSelect(option);
+        setIsOpen(false);
+    };
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
+    return (
+        <div className="dropdown" ref={dropdownRef}>
+            <button onClick={toggleDropdown}>
+                Select a Category
+            </button>
+            {isOpen && (
+                <ul className="dropdown-menu">
+                    {options.map((option) => (
+                        <li key={option} onClick={() => handleOptionClick(option)}>
+                            {option}
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </div>
+    );
+}
 function LandingPg() {
     const navigate = useNavigate();
     const [isSignedIn, setSignedIn] = useState(localStorage.getItem("isSignedIn") === "true");
     const [username, setUsername] = useState(localStorage.getItem("username") || "Guest");
-    const [tierLists, setTierLists] = useState([]);
+    const [allTierLists, setAllTierLists] = useState([]); // Store all tier lists
+    const [filteredTierLists, setFilteredTierLists] = useState([]); // Store filtered tier lists
     const [showModal, setShowModal] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [userTierLists, setUserTierLists] = useState([]);
+    const [filteredUserTierLists, setFilteredUserTierLists] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState("General");
+    const categories = ["General", "Anime", "Food", "Places", "Music", "Games", "Movies", "Animals"];
 
     useEffect(() => {
         fetchTierLists();
@@ -19,6 +65,7 @@ function LandingPg() {
         if (isSignedIn) {
             fetchUserTierLists().then(lists => {
                 setUserTierLists(lists);
+                filterUserTierLists(lists, selectedCategory);
             });
         }
 
@@ -31,6 +78,7 @@ function LandingPg() {
             if (newSignedInState && !isSignedIn) {
                 fetchUserTierLists().then(lists => {
                     setUserTierLists(lists);
+                    filterUserTierLists(lists, selectedCategory);
                 });
             }
         };
@@ -38,7 +86,36 @@ function LandingPg() {
         window.addEventListener("storage", handleStorageChange);
         return () => window.removeEventListener("storage", handleStorageChange);
     }, [isSignedIn]);
-// Add a new function to fetch user's tier lists
+
+    // Filter tier lists whenever the selected category changes
+    useEffect(() => {
+        filterTierLists(allTierLists, selectedCategory);
+        filterUserTierLists(userTierLists, selectedCategory);
+    }, [selectedCategory, allTierLists, userTierLists]);
+
+    const handleCategorySelect = (category) => {
+        setSelectedCategory(category);
+    };
+
+    // Function to filter tier lists based on category
+    const filterTierLists = (lists, category) => {
+        if (category === "General") {
+            setFilteredTierLists(lists);
+        } else {
+            setFilteredTierLists(lists.filter(list => list.category === category));
+        }
+    };
+
+    // Function to filter user tier lists based on category
+    const filterUserTierLists = (lists, category) => {
+        if (category === "General") {
+            setFilteredUserTierLists(lists);
+        } else {
+            setFilteredUserTierLists(lists.filter(list => list.category === category));
+        }
+    };
+
+    // Add a new function to fetch user's tier lists
     const fetchUserTierLists = async () => {
         try {
             const userId = localStorage.getItem("userId");
@@ -81,6 +158,7 @@ function LandingPg() {
                             name: list.title,
                             creator: list.user_id,
                             description: list.description,
+                            category: list.category || "General",
                             tiers: { S: [], A: [], B: [], C: [], D: [], F: [] },
                             likes: 0
                         };
@@ -98,6 +176,7 @@ function LandingPg() {
                             id: list.id,
                             name: list.title,
                             description: list.description,
+                            category: list.category || "General",
                             tiers: organizeTierItems(items, []),
                             likes: 0
                         };
@@ -124,6 +203,7 @@ function LandingPg() {
                         name: list.title,
                         description: list.description,
                         creator: list.creator,
+                        category: list.category || "General",
                         tiers: tiers,
                         likes: likesCount
                     };
@@ -133,6 +213,7 @@ function LandingPg() {
                         id: list.id,
                         name: list.title,
                         description: list.description,
+                        category: list.category || "General",
                         tiers: { S: [], A: [], B: [], C: [], D: [], F: [] },
                         likes: 0
                     };
@@ -148,10 +229,13 @@ function LandingPg() {
             setIsLoading(false);
         }
     };
+
     const fetchTierLists = async () => {
         try {
             setIsLoading(true);
             setError(null);
+
+            // Fetch all tier lists from the API
             const response = await fetch('http://localhost:8080/api/tierlists', {
                 method: 'GET',
                 credentials: 'include',
@@ -170,7 +254,8 @@ function LandingPg() {
 
             if (!Array.isArray(data)) {
                 console.error("Expected an array but received:", data);
-                setTierLists([]);
+                setAllTierLists([]);
+                setFilteredTierLists([]);
                 throw new Error("Invalid data format received from server");
             }
 
@@ -187,6 +272,7 @@ function LandingPg() {
                             name: list.title,
                             creator: list.user_id,
                             description: list.description,
+                            category: list.category || "General",
                             tiers: { S: [], A: [], B: [], C: [], D: [], F: [] },
                             likes: 0
                         };
@@ -203,6 +289,7 @@ function LandingPg() {
                             id: list.id,
                             name: list.title,
                             description: list.description,
+                            category: list.category || "General",
                             tiers: organizeTierItems(items, []),
                             likes: 0
                         };
@@ -229,6 +316,7 @@ function LandingPg() {
                         name: list.title,
                         description: list.description,
                         creator: list.creator,
+                        category: list.category || "General",
                         tiers: tiers,
                         likes: likesCount
                     };
@@ -238,17 +326,20 @@ function LandingPg() {
                         id: list.id,
                         name: list.title,
                         description: list.description,
+                        category: list.category || "General",
                         tiers: { S: [], A: [], B: [], C: [], D: [], F: [] },
                         likes: 0
                     };
                 }
             }));
 
-            setTierLists(processedLists);
+            setAllTierLists(processedLists);
+            filterTierLists(processedLists, selectedCategory);
         } catch (err) {
             console.error("Error fetching tier lists:", err);
             setError("Failed to load tier lists. Please try again later.");
-            setTierLists([]);
+            setAllTierLists([]);
+            setFilteredTierLists([]);
         } finally {
             setIsLoading(false);
         }
@@ -336,7 +427,10 @@ function LandingPg() {
             {isSignedIn && (
                 <button onClick={() => setShowModal(true)} className="btn">My Tier List</button>
             )}
-
+            <div className="category-selector">
+                <p>Category: {selectedCategory}</p>
+                <Dropdown options={categories} onSelect={handleCategorySelect} />
+            </div>
             {isLoading ? (
                 <p>Loading tier lists...</p>
             ) : error ? (
@@ -346,14 +440,14 @@ function LandingPg() {
                 </div>
             ) : (
                 <div className="tier-list-wrapper">
-                    {tierLists.length > 0 ? tierLists.map((tierList) => (
+                    {filteredTierLists.length > 0 ? filteredTierLists.map((tierList) => (
                         <TierListDisplay
                             key={tierList.id}
                             tierList={tierList}
                             isOwner={tierList.creator?.userId === localStorage.getItem("userId")}
                         />
                     )) : (
-                        <p>No tier lists available.</p>
+                        <p>No tier lists available for the {selectedCategory} category.</p>
                     )}
                 </div>
             )}
@@ -362,10 +456,14 @@ function LandingPg() {
                 <div className="modal-overlay">
                     <div className="modal-content">
                         <h2>{username}'s Tier Lists</h2>
+                        <div className="category-selector">
+                            <p>Filter by Category: {selectedCategory}</p>
+                            <Dropdown options={categories} onSelect={handleCategorySelect} />
+                        </div>
                         {isSignedIn && username !== "Guest" ? (
-                            userTierLists.length > 0 ? (
+                            filteredUserTierLists.length > 0 ? (
                                 <div className="user-tier-lists">
-                                    {userTierLists.map(tierList => (
+                                    {filteredUserTierLists.map(tierList => (
                                         <TierListDisplay
                                             key={tierList.id}
                                             tierList={tierList}
@@ -374,13 +472,22 @@ function LandingPg() {
                                     ))}
                                 </div>
                             ) : (
-                                <p className={"error_notl"}>You haven't created any tier lists yet.</p>
+                                <p className={"error_notl"}>
+                                    {selectedCategory === "General"
+                                        ? "You haven't created any tier lists yet."
+                                        : `You haven't created any tier lists in the ${selectedCategory} category yet.`}
+                                </p>
                             )
                         ) : (
                             <p>Please sign in to view your tier lists.</p>
                         )}
                         <div className="btn-group">
-                            <button className="close-btn" onClick={() => fetchUserTierLists().then(lists => setUserTierLists(lists))}>Refresh</button>
+                            <button className="close-btn" onClick={() => {
+                                fetchUserTierLists().then(lists => {
+                                    setUserTierLists(lists);
+                                    filterUserTierLists(lists, selectedCategory);
+                                });
+                            }}>Refresh</button>
                             <button className="close-btn" onClick={() => setShowModal(false)}>Close</button>
                         </div>
                     </div>
@@ -401,6 +508,7 @@ function TierListDisplay({ tierList, isOwner }) {
     return (
         <div className="tier-list-container">
             <h2>{tierList.name}</h2>
+            <p>Category: {tierList.category || "General"}</p>
             <div className="tier-box">
                 {Object.keys(tierList.tiers).map((tier) => (
                     <div key={tier} className={`tier ${tier.toLowerCase()}`}>
