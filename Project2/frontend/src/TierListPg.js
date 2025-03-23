@@ -1,6 +1,50 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./innerPages.css";
+
+function Dropdown({ options, onSelect }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const dropdownRef = useRef(null);
+
+    const toggleDropdown = () => {
+        setIsOpen(!isOpen);
+    };
+
+    const handleOptionClick = (option) => {
+        onSelect(option);
+        setIsOpen(false);
+    };
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
+    return (
+        <div className="dropdown" ref={dropdownRef}>
+            <button onClick={toggleDropdown}>
+                Select a Category
+            </button>
+            {isOpen && (
+                <ul className="dropdown-menu">
+                    {options.map((option) => (
+                        <li key={option} onClick={() => handleOptionClick(option)}>
+                            {option}
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </div>
+    );
+}
 
 const initialTiers = {
     S: [],
@@ -20,10 +64,12 @@ function TierListPage() {
     const [draggingItem, setDraggingItem] = useState(null);
     const [isSignedIn, setSignedIn] = useState(localStorage.getItem("isSignedIn") === "true");
     const [username, setUsername] = useState(localStorage.getItem("username") || "Guest");
-    const [isPublic, setIsPublic] = useState(localStorage.getItem("isPublic") !== "false");
     const [tierListTitle, setTierListTitle] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState(null);
+    const [isPublic, setIsPublic] = useState(true);
+    const [selectedCategory, setSelectedCategory] = useState("General");
+    const categories = ["General", "Anime", "Food", "Places", "Music", "Games", "Movies", "Animals"];
 
     // Button style for consistent theming
     const primaryButtonStyle = {
@@ -34,17 +80,8 @@ function TierListPage() {
 
     useEffect(() => {
         localStorage.setItem("isSignedIn", isSignedIn);
-        localStorage.setItem("isPublic", isPublic);
     }, [isSignedIn, isPublic]);
 
-    const togglePrivacy = () => {
-        setIsPublic((prev) => {
-            const newValue = !prev;
-            localStorage.setItem("isPublic", newValue.toString());
-            console.log("Privacy toggled to:", newValue ? "Public" : "Private");
-            return newValue;
-        });
-    };
 
     const handleAddItem = (event) => {
         const file = event.target.files[0];
@@ -117,8 +154,17 @@ function TierListPage() {
         navigate("/");
     };
 
+
+    const handleCategorySelect = (category) => {
+        setSelectedCategory(category);
+    };
+
+    // This is the updated submitTierList function
+    const submitTierList = async () => {
+
     const submitTierList = async () => {
         // Existing submit logic
+
         if (!tierListTitle.trim()) {
             setSubmitError("Please enter a title for your tier list");
             return;
@@ -142,17 +188,16 @@ function TierListPage() {
             setSubmitError(null);
 
             const userId = localStorage.getItem("userId");
-            console.log("userid",userId);
-
             if (!userId) {
                 throw new Error("User ID not found. Please sign in again.");
             }
 
+            // Create tier list first
             const tierListData = {
                 title: tierListTitle,
                 description: `${username}'s tier list for ${tierListTitle}`,
                 isPublic: isPublic,
-                category: "General",
+                category: selectedCategory,
                 creator: {
                     userId: userId
                 }
@@ -194,12 +239,14 @@ function TierListPage() {
                         });
 
                         if (!itemResponse.ok) {
-                            console.error(`Failed to add item ${item.text}`);
-                            continue; // Continue with other items
+                            const errorData = await itemResponse.json().catch(() => ({}));
+                            console.error(`Failed to add item ${item.text}: ${errorData.message || 'Unknown error'}`);
+                            continue;
                         }
                         const savedItem = await itemResponse.json();
+                        const tierRanking = tierName.toUpperCase();
 
-                        const ratingResponse = await fetch(`${API_BASE_URL}/api/tierlists/${tierListId}/items/${savedItem.id}/rate?userId=${encodeURIComponent(userId)}&ranking=${tierName}`, {
+                        const ratingResponse = await fetch(`${API_BASE_URL}/api/tierlists/${tierListId}/items/${savedItem.id}/rate?userId=${encodeURIComponent(userId)}&ranking=${tierRanking}`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -208,7 +255,8 @@ function TierListPage() {
                         });
 
                         if (!ratingResponse.ok) {
-                            console.error(`Failed to rate item ${item.text}`);
+                            const errorData = await ratingResponse.json().catch(() => ({}));
+                            console.error(`Failed to rate item ${item.text}: ${errorData.message || 'Unknown error'}`);
                         }
                     } catch (itemError) {
                         console.error("Error processing item:", itemError);
@@ -228,6 +276,32 @@ function TierListPage() {
     };
 
     return (
+
+    /*   // <div className="landing-container">
+         //   <div className="header">
+              //  <h1>{username}'s Tier List</h1>
+               // {isSignedIn && <p onClick={handleSignOut} className="sign-out">Sign Out</p>}
+          //  </div>
+           // <div className="btn-group">
+               // <button onClick={() => navigate("/")} className="btn">Home</button>
+                //<button onClick={() => navigate("/edit")} className="btn">Edit Account</button>
+            </div>
+            //<input
+               // type="text"
+                //placeholder="Tier List Title"
+                //className="tier-input"
+                //value={tierListTitle}
+                //onChange={(e) => setTierListTitle(e.target.value)}
+            />
+          //  <div className="category-selector">
+               // <p>Category: {selectedCategory}</p>
+               // <Dropdown options={categories} onSelect={handleCategorySelect} />
+            </div>
+
+            //<div className="tier-list-wrapper2">
+               // {Object.keys(tiers).map((tier) => (
+            */        tier !== 'storageBox' && (
+
         <div className="min-h-screen flex flex-col items-center"
              style={{background: "linear-gradient(to right, rgb(58, 28, 113), rgb(215, 109, 119), rgb(255, 175, 123))"}}>
             <div className="w-full max-w-6xl px-4 py-8">
@@ -351,6 +425,20 @@ function TierListPage() {
                         </div>
                     </div>
 
+
+        //    <div className="privacy-toggle">
+               // <label>
+                 //   <input
+                    //    type="checkbox"
+                      //  checked={isPublic}
+                      //  onChange={() => setIsPublic(!isPublic)}
+                   / />
+                    Make this tier list public
+                //</label>
+           // </div>
+
+            {submitError && <div className="error-message">{submitError}</div>}
+
                     <div className="mt-6">
                         <label className="btn w-full" style={primaryButtonStyle}>
                             <input
@@ -362,6 +450,7 @@ function TierListPage() {
                             Upload Image
                         </label>
                     </div>
+
 
                     {submitError && (
                         <div className="bg-red-100 text-red-700 p-3 rounded-lg mt-4">

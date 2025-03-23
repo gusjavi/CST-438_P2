@@ -6,9 +6,22 @@ import LandingPg from "./LandingPg";
 import TierListPage from "./TierListPg";
 import EditPg from "./EditPg";
 import ProtectedRoute from "./ProtectedRoute";
+import EditTierlist from "./edit_tierlist";
 
 function App() {
     return (
+
+      //  <Routes>
+          //  <Route path="/login" element={<LoginPage />} />
+            //<Route path="/signup" element={<SignupPage />} />
+           // <Route path="/" element={<LandingPg />} />
+
+           // <Route path="/tier" element={<ProtectedRoute element={<TierListPg />} />} />
+           // <Route path="/edit" element={<ProtectedRoute element={<EditPg />} />} />
+           // <Route path="/edit_tierlist/:id" element={<ProtectedRoute element={<EditTierlist />}/>}/>
+            //<Route path="*" element={<h1>404 - Page Not Found</h1>} />
+        </Routes>
+
         <div data-theme="dark"> {/*  theme wrapper */}
             <Routes>
                 <Route path="/login" element={<LoginPage />} />
@@ -37,6 +50,7 @@ function App() {
                 } />
             </Routes>
         </div>
+
     );
 }
 

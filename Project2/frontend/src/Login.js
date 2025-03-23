@@ -22,6 +22,30 @@ function LoginPage() {
                 return data.userId;
             } else {
                 console.warn("Could not fetch user ID for username:", username);
+
+                alert("User not found!");
+                navigate("/signup");
+
+                return null;
+            }
+        } catch (err) {
+            console.error("Error fetching user ID:", err);
+            return null;
+        }
+    }
+    async function fetchUserIdByEmail(email) {
+        try {
+            const response = await fetch(`http://localhost:8080/api/users/by-email/${email}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json" }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                return data.userId;
+            } else {
+                console.warn("Could not fetch user ID for gmail:", email);
+
                 alert("User not found!");
                 navigate("/signup");
                 return null;
@@ -31,7 +55,29 @@ function LoginPage() {
             return null;
         }
     }
+    async function fetchUserNameById(id) {
+        try {
+            const response = await fetch(`http://localhost:8080/api/users/${id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json" }
+            });
 
+            if (response.ok) {
+                const data = await response.json();
+                console.log(data);
+                return data.name;
+            } else {
+                console.warn("Could not fetch user ID for gmail:", id);
+
+                alert("User not found!");
+                navigate("/signup");
+                return null;
+            }
+        } catch (err) {
+            console.error("Error fetching user ID:", err);
+            return null;
+        }
+    }
     function handleChange(e) {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     }
@@ -71,14 +117,23 @@ function LoginPage() {
                 if (data.username) {
                     localStorage.setItem("username", data.username);
 
-                    // Fetch and store user ID
-                    const userId = await fetchUserIdByUsername(data.username);
+
+                // Fetch and store user ID if we have a username
+                if (userDisplayName) {
+                    let userId = await fetchUserIdByUsername(userDisplayName);
+                    if(!userId){
+                         userId = await fetchUserIdByEmail(formData.email);
+                    }
                     if (userId) {
                         localStorage.setItem("userId", userId);
                         console.log("User ID stored:", userId);
-                    } else {
-                        console.warn("Could not retrieve user ID");
-                        // Continue anyway since we have the username
+                        const username2 = await fetchUserNameById(userId);
+                        localStorage.setItem("username", username2);
+                    }else{
+                        alert("Login Failed!");
+                        navigate("/signup");
+                        return null;
+
                     }
                 }
 
