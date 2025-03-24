@@ -6,7 +6,6 @@ import { deleteUser, EmailAuthProvider, reauthenticateWithCredential } from "fir
 
 function EditPg() {
     const navigate = useNavigate();
-
     const [formData, setFormData] = useState({ username: "", password: "" });
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
@@ -14,6 +13,12 @@ function EditPg() {
     const [username, setUsername] = useState(localStorage.getItem("username") || "Guest");
     const [loading, setLoading] = useState(false);
     const userId = localStorage.getItem("userId");
+
+    const primaryButtonStyle = {
+        background: "linear-gradient(to right, #ff8008, #ffc837)",
+        border: "none",
+        color: "white"
+    };
 
     useEffect(() => {
         localStorage.setItem("isSignedIn", isSignedIn);
@@ -69,6 +74,7 @@ function EditPg() {
         }
     }
 
+
     async function deleteAccount() {
         if (!window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
             return;
@@ -112,6 +118,14 @@ function EditPg() {
         } finally {
             setLoading(false);
         }
+
+    function deleteAccount(){
+        alert("Feature coming soon: Delete Profile");
+    }
+
+    function deleteInfo(){
+        alert("Feature coming soon: Delete Info");
+
     }
 
     const handleSignOut = () => {
@@ -125,30 +139,108 @@ function EditPg() {
     };
 
     return (
-        <div className="landing-container">
-            <div className="header">
-                <h1>Edit Account</h1>
-                {isSignedIn && <p onClick={handleSignOut} className="sign-out">Sign Out</p>}
-            </div>
-            <div className="btn-group">
-                <button onClick={() => navigate("/")} className="btn">Home</button>
-                <button onClick={() => navigate("/tier")} className="btn">Go to TierList</button>
-            </div>
-            <div className="container2">
-                {message && <p className="success-message">{message}</p>}
-                {error && <p className="error">{error}</p>}
-                <form onSubmit={handleSubmit} className="form">
-                    <input type="text" name="username" placeholder={username} value={formData.username} onChange={handleChange} required className="input" />
-                    {/*<input type="password" name="password" placeholder="Password" value={formData.password} onChange={handleChange} required className="input" />*/}
-                    <button type="submit" className="btn" disabled={loading}>
-                        {loading ? "Processing..." : "Update Username"}
+
+
+        <div className="min-h-screen flex flex-col items-center"
+             style={{background: "linear-gradient(to right, rgb(58, 28, 113), rgb(215, 109, 119), rgb(255, 175, 123))"}}>
+            <div className="w-full max-w-xl px-4 py-8">
+                <div className="flex justify-between items-center mb-6">
+                    <h1 className="text-3xl font-bold text-white">Edit Account</h1>
+                    {isSignedIn && (
+                        <button
+                            onClick={handleSignOut}
+                            className="btn btn-sm"
+                            style={primaryButtonStyle}
+                        >
+                            Sign Out
+                        </button>
+                    )}
+                </div>
+
+                <div className="flex gap-2 mb-6">
+                    <button
+                        onClick={() => navigate("/")}
+                        className="btn"
+                        style={primaryButtonStyle}
+                    >
+                        Home
                     </button>
-                </form>
-            </div>
-            <div className="btn-group">
-                <button onClick={deleteAccount} className="btn danger-btn" disabled={loading}>
-                    {loading ? "Processing..." : "Delete Account"}
-                </button>
+                    <button
+                        onClick={() => navigate("/tier")}
+                        className="btn"
+                        style={primaryButtonStyle}
+                    >
+                        Go to TierList
+                    </button>
+                </div>
+
+                <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="form-control">
+                            <label className="label">
+                                <span className="label-text">Username or Email</span>
+                            </label>
+                            <input
+                                type="text"
+                                name="username"
+                                placeholder="Username or Email"
+                                value={formData.username}
+                                onChange={handleChange}
+                                required
+                                className="input input-bordered w-full"
+                            />
+                        </div>
+
+                        <div className="form-control">
+                            <label className="label">
+                                <span className="label-text">Password</span>
+                            </label>
+                            <input
+                                type="password"
+                                name="password"
+                                placeholder="Password"
+                                value={formData.password}
+                                onChange={handleChange}
+                                required
+                                className="input input-bordered w-full"
+                            />
+                        </div>
+
+                        {error && (
+                            <div className="bg-red-100 text-red-700 p-3 rounded-lg">
+                                {error}
+                            </div>
+                        )}
+
+                        <button
+                            type="submit"
+                            className="btn w-full"
+                            style={primaryButtonStyle}
+                        >
+                            Update Profile
+                        </button>
+                    </form>
+                </div>
+
+                <div className="bg-white rounded-lg shadow-lg p-6">
+                    <div className="flex flex-col gap-2">
+                        <button
+                            onClick={deleteAccount}
+                            className="btn w-full"
+                            style={primaryButtonStyle}
+                        >
+                            Delete Profile
+                        </button>
+                        <button
+                            onClick={deleteInfo}
+                            className="btn w-full"
+                            style={primaryButtonStyle}
+                        >
+                            Delete Info
+                        </button>
+                    </div>
+                </div>
+
             </div>
         </div>
     );
