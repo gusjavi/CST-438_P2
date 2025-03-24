@@ -189,7 +189,6 @@ function TierListPage() {
             const tierListData = {
                 title: tierListTitle,
                 description: `${username}'s tier list for ${tierListTitle}`,
-                isPublic: isPublic,
                 category: selectedCategory,
                 creator: {
                     userId: userId

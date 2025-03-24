@@ -7,6 +7,7 @@ import TierListPg from "./TierListPg";
 import EditPg from "./EditPg";
 import ProtectedRoute from "./ProtectedRoute";
 import EditTierlist from "./edit_tierlist";
+import LikedTierLists from './likedtierlists';
 
 function App() {
     return (
@@ -18,6 +19,7 @@ function App() {
             <Route path="/tier" element={<ProtectedRoute element={<TierListPg />} />} />
             <Route path="/edit" element={<ProtectedRoute element={<EditPg />} />} />
             <Route path="/edit_tierlist/:id" element={<ProtectedRoute element={<EditTierlist />}/>}/>
+            <Route path="/liked-lists" element={<ProtectedRoute element={<LikedTierLists />}/>} />
             <Route path="*" element={<h1>404 - Page Not Found</h1>} />
         </Routes>
     );

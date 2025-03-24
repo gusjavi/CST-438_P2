@@ -2,7 +2,7 @@ import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from 
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "./firebaseCOnfig";
-//import "./styles.css";
+import "./styles.css";
 
 function LoginPage() {
     const navigate = useNavigate();
@@ -124,7 +124,7 @@ function LoginPage() {
                 if (userDisplayName) {
                     let userId = await fetchUserIdByUsername(userDisplayName);
                     if(!userId){
-                        userId = await fetchUserIdByEmail(formData.email);
+                         userId = await fetchUserIdByEmail(formData.email);
                     }
                     if (userId) {
                         localStorage.setItem("userId", userId);
@@ -207,66 +207,22 @@ function LoginPage() {
     }
 
     return (
-        <div className="flex items-center justify-center min-h-screen" style={{background: "linear-gradient(to right, rgb(58, 28, 113), rgb(215, 109, 119), rgb(255, 175, 123))"}}>
-            <div className="card w-full max-w-sm bg-base-100 shadow-xl">
-                <div className="card-body">
-                    <h2 className="text-2xl font-bold text-center mb-4">Login</h2>
+        <div className="container1">
+            <h2>Log in</h2>
+            <form onSubmit={handleSubmit} className="form">
+                <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} required className="input" />
 
-                    {error && (
-                        <div className="alert alert-error mb-4">
-                            <span>{error}</span>
-                        </div>
-                    )}
+                <input type="password" name="password" placeholder="Password" value={formData.password} onChange={handleChange} required className="input" />
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="form-control">
-                            <label className="label">
-                                <span className="label-text">Email address</span>
-                            </label>
-                            <input
-                                type="email"
-                                name="email"
-                                placeholder="Email address"
-                                className="input input-bordered w-full"
-                                value={formData.email}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-                        <div className="form-control">
-                            <label className="label">
-                                <span className="label-text">Password</span>
-                            </label>
-                            <input
-                                type="password"
-                                name="password"
-                                placeholder="Password"
-                                className="input input-bordered w-full"
-                                value={formData.password}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-                        <div className="form-control mt-6">
-                            <button type="submit" className="btn w-4/5 mx-auto" style={{background: "linear-gradient(to right, #ff8008, #ffc837)", border: "none", color: "white"}} disabled={loading}
-                            >
-                                {loading ? 'Logging in...' : 'Log in'}
-                            </button>
-                        </div>
-                    </form>
+                {error && <p className="error">{error}</p>}
+                <button type="submit" className="btn" disabled={loading}>
+                    {loading ? "Logging in..." : "Log in"}
+                </button>
+            </form>
 
-
-
-                    <div className="text-center mt-4">
-                        <p className="text-sm mb-2">Don't have an account?</p>
-                        <button onClick={() => navigate('/signup')} className="btn btn-sm w-2/5 mx-auto" style={{background: "linear-gradient(to right, #ff8008, #ffc837)", border: "none", color: "white"
-                            }}
-                        >
-                            Sign up
-                        </button>
-                    </div>
-                </div>
-            </div>
+            <p>
+                Don't have an account? <span className="link" onClick={() => navigate("/signup")}>Sign up</span>
+            </p>
         </div>
     );
 }
