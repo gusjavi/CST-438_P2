@@ -37,7 +37,9 @@ public class User {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
-
+    public String getUsername() {
+        return name;  // Return the name field
+    }
     // Getters and setters
     public String getUserId() {
         return userId;

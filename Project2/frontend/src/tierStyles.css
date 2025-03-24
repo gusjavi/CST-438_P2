@@ -1,0 +1,104 @@
+
+
+.tier-list-wrapper {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 20px !important;
+}
+
+
+.tier-list-container {
+    width: 380px !important;
+    margin: 10px !important;
+    background-color: #202020 !important;
+    padding: 15px !important;
+    border-radius: 8px !important;
+    color: white !important;
+}
+
+
+.btn {
+    background: linear-gradient(to right, #ff8008, #ffc837) !important;
+    border: none !important;
+    color: white !important;
+}
+
+/* Add new styles for tiers to fix the layout */
+.tier {
+    position: relative !important;
+    padding: 10px !important;
+    margin-bottom: 10px !important;
+    border-radius: 5px !important;
+    display: flex !important;
+    min-height: 70px !important;
+    align-items: center !important;
+}
+
+/* Position the tier letter on the left */
+.tier h3 {
+    position: absolute !important;
+    left: 15px !important;
+    margin: 0 !important;
+    font-size: 18px !important;
+    font-weight: bold !important;
+    color: black !important;
+}
+
+/* Make items display horizontally */
+.tier-items {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    margin-left: 40px !important;
+    width: calc(100% - 40px) !important;
+    gap: 8px !important;
+}
+
+/* Style for each tier item */
+.tier-item {
+    background-color: #333 !important;
+    border-radius: 4px !important;
+    width: 100px !important;
+    text-align: center !important;
+    overflow: hidden !important;
+}
+
+/* Style for tier item images */
+.tier-image {
+    width: 100% !important;
+    height: 80px !important;
+    object-fit: cover !important;
+}
+
+/* Message for empty tiers */
+.tier-empty {
+    color: #888 !important;
+    font-style: italic !important;
+    padding: 8px !important;
+}
+
+/* Background colors for tiers */
+.tier.s {
+    background-color: #ffcdd2 !important; /* Light red */
+}
+
+.tier.a {
+    background-color: #ffe0b2 !important; /* Light orange */
+}
+
+.tier.b {
+    background-color: #fff9c4 !important; /* Light yellow */
+}
+
+.tier.c {
+    background-color: #dcedc8 !important; /* Light green */
+}
+
+.tier.d {
+    background-color: #bbdefb !important; /* Light blue */
+}
+
+.tier.f {
+    background-color: #e0e0e0 !important; /* Light gray */
+}
