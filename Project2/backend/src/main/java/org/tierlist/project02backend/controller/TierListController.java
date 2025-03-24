@@ -153,6 +153,11 @@ public class TierListController {
                             "message", e.getMessage()));
         }
     }
+    @GetMapping("/liked/{userId}")
+    public List<TierList> getLikedTierLists(@PathVariable String userId) {
+        // You'll need to implement this method in your TierListService
+        return tierListService.getLikedTierLists(userId);
+    }
 
     // New endpoint for paginated, sorted, and filtered tier lists
 //    @GetMapping("/paginated")

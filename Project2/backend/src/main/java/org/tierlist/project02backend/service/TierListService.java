@@ -297,5 +297,11 @@ public class TierListService {
 
         logger.info("Successfully deleted tier list {} and all associated data", tierListId);
     }
+    public List<TierList> getLikedTierLists(String userId) {
+        // Query to find tier lists liked by the user
+        // This might involve joining TierListLike with TierList
+        logger.info("Fetching liked tier lists for user {}", userId);
+        return tierListRepository.findLikedTierListsByUserId(userId);
+    }
 
 }

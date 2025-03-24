@@ -220,10 +220,6 @@ function LoginPage() {
                 </button>
             </form>
 
-            <button onClick={handleGoogleLogin} className="btn google-btn" disabled={loading}>
-                {loading ? "Processing..." : "Sign in with Google"}
-            </button>
-
             <p>
                 Don't have an account? <span className="link" onClick={() => navigate("/signup")}>Sign up</span>
             </p>
