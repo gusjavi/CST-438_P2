@@ -9,6 +9,8 @@ function SignupPage() {
     const [formData, setFormData] = useState({ username: "", email: "", password: "" });
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const API_URL = 'http://localhost:8080';
+
 
     function handleChange(e) {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -38,7 +40,7 @@ function SignupPage() {
             await updateProfile(user, { displayName: formData.username });
             const idToken = await user.getIdToken();
             console.log("Created ", idToken);
-            const response = await fetch('http://localhost:8080/api/auth/save-user', {
+            const response = await fetch(`${API_URL}/api/auth/save-user`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

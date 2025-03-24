@@ -5,17 +5,22 @@ services:
     ports:
       - "8080:8080"  # Expose backend on port 8080
     env_file:
-      - ./.env.properties
+      - ./.env
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-    volumes:
-      - ./firebase-service-account.json:/app/src/main/resources/firebase-service-account.json  # Mount the Firebase service account file
     networks:
       - tierlist-network
 
   frontend:
     build:
       context: ./frontend
+      args:
+        REACT_APP_FIREBASE_API_KEY: ${REACT_APP_FIREBASE_API_KEY}
+        REACT_APP_FIREBASE_AUTH_DOMAIN: ${REACT_APP_FIREBASE_AUTH_DOMAIN}
+        REACT_APP_FIREBASE_PROJECT_ID: ${REACT_APP_FIREBASE_PROJECT_ID}
+        REACT_APP_FIREBASE_STORAGE_BUCKET: ${REACT_APP_FIREBASE_STORAGE_BUCKET}
+        REACT_APP_FIREBASE_MESSAGING_SENDER_ID: ${REACT_APP_FIREBASE_MESSAGING_SENDER_ID}
+        REACT_APP_FIREBASE_APP_ID: ${REACT_APP_FIREBASE_APP_ID}
     ports:
       - "80:80"  # Expose frontend on port 80
     environment:

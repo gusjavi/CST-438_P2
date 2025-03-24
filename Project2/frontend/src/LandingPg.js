@@ -10,6 +10,7 @@ function LandingPg() {
     const [showModal, setShowModal] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const API_URL = 'http://localhost:8080';
 
     useEffect(() => {
         fetchTierLists();
@@ -28,8 +29,9 @@ function LandingPg() {
             setIsLoading(true);
             setError(null);
 
+            console.log('API URL being used:', API_URL);
             console.log("Fetching tier lists...");
-            const response = await fetch('http://localhost:8080/api/tierlists', {
+            const response = await fetch(`${API_URL}/api/tierlists`, {
                 method: 'GET',
                 credentials: 'include',
                 headers: {
@@ -37,6 +39,7 @@ function LandingPg() {
                     'Accept': 'application/json',
                 }
             });
+
 
             if (!response.ok) {
                 console.error(`HTTP error! Status: ${response.status}`);
@@ -53,7 +56,7 @@ function LandingPg() {
 
             const processedLists = await Promise.all(data.map(async (list) => {
                 try {
-                    const itemsResponse = await fetch(`http://localhost:8080/api/tierlists/${list.id}/items`, {
+                    const itemsResponse = await fetch(`${API_URL}/api/tierlists/${list.id}/items`, {
                         credentials: 'include'
                     });
 
@@ -71,7 +74,7 @@ function LandingPg() {
 
                     const items = await itemsResponse.json();
 
-                    const ratingsResponse = await fetch(`http://localhost:8080/api/tierlists/${list.id}/ratings`, {
+                    const ratingsResponse = await fetch(`${API_URL}/api/tierlists/${list.id}/ratings`, {
                         credentials: 'include'
                     });
                     console.log("Ratings data structure:", ratingsResponse[0]);
@@ -88,7 +91,7 @@ function LandingPg() {
 
                     const ratings = await ratingsResponse.json();
 
-                    const likesResponse = await fetch(`http://localhost:8080/api/tierlists/${list.id}/likes/count`, {
+                    const likesResponse = await fetch(`${API_URL}/api/tierlists/${list.id}/likes/count`, {
                         credentials: 'include'
                     });
 

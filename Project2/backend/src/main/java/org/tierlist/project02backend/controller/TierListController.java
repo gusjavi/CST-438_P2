@@ -14,6 +14,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+@CrossOrigin(
+        origins = "http://localhost", // The browser origin
+        allowCredentials = "true"
+)
 @RestController
 @RequestMapping("/api/tierlists")
 public class TierListController {

@@ -12,6 +12,10 @@ import java.util.Optional;
 import java.util.HashMap;
 import java.util.Map;
 
+@CrossOrigin(
+        origins = "http://localhost", // The browser origin
+        allowCredentials = "true"
+)
 @RestController
 @RequestMapping("/api/users")
 public class UserController {

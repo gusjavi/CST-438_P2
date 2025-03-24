@@ -11,11 +11,13 @@ function LoginPage() {
     const [formData, setFormData] = useState({ email: "", password: "" });
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const API_URL = 'http://localhost:8080';
+
 
     // Function to fetch user ID by username
     async function fetchUserIdByUsername(username) {
         try {
-            const response = await fetch(`http://localhost:8080/api/users/by-name/${username}`, {
+            const response = await fetch(`${API_URL}/api/users/by-name/${username}`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json" }
             });
@@ -43,7 +45,7 @@ function LoginPage() {
         setLoading(true);
 
         try {
-            const response = await fetch("http://localhost:8080/api/auth/login", {
+            const response = await fetch(`${API_URL}/api/auth/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -107,7 +109,7 @@ function LoginPage() {
 
             const idToken = await result.user.getIdToken();
             const displayName = result.user.displayName;
-            const res = await fetch("http://localhost:8080/api/auth/google-verify", {
+            const res = await fetch(`${API_URL}/api/auth/google-verify`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ token: idToken })

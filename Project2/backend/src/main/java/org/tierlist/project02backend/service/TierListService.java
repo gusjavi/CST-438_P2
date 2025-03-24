@@ -6,6 +6,7 @@ import org.tierlist.project02backend.model.*;
 import org.tierlist.project02backend.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.hibernate.Hibernate;
 
 import java.util.List;
 import java.util.Optional;
@@ -40,7 +41,15 @@ public class TierListService {
 
     public List<TierList> getAllTierLists() {
         logger.info("Fetching all tier lists");
-        return tierListRepository.findAll();
+
+        List<TierList> tierLists = tierListRepository.findAll();
+
+        for (TierList tierList : tierLists) {
+            Hibernate.initialize(tierList.getCreator()); // <--- this is key
+            logger.info("CREATOR = " + tierList.getCreator().getClass());
+        }
+
+        return tierLists;
     }
 
     @Transactional(readOnly = true)
