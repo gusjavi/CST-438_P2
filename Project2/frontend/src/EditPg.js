@@ -2,7 +2,8 @@ import React, {useEffect, useState} from "react";
 import { useNavigate } from "react-router-dom";
 import "./innerPages.css";
 import { auth } from "./firebaseCOnfig";
-import { deleteUser, EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
+import { getAuth, reauthenticateWithCredential, EmailAuthProvider, deleteUser } from "firebase/auth";
+
 
 function EditPg() {
     const navigate = useNavigate();
@@ -77,8 +78,28 @@ function EditPg() {
         setLoading(true);
         setError("");
 
+
         try {
+            const auth = getAuth();
             const user = auth.currentUser;
+
+            if (!user) {
+                throw new Error("No user is currently logged in.");
+            }
+
+            // Prompt for password (or use saved credentials)
+            const password = prompt("Please enter your password to confirm:");
+            if (!password) {
+                throw new Error("Password is required for reauthentication.");
+            }
+
+            // Create credentials for reauthentication
+            const credential = EmailAuthProvider.credential(user.email, password);
+
+            // Reauthenticate the user
+            await reauthenticateWithCredential(user, credential);
+            console.log("Reauthentication successful.");
+
 
             if (!user) {
                 throw new Error("You must be logged in to delete your account");
@@ -113,6 +134,40 @@ function EditPg() {
             setLoading(false);
         }
     }
+    async function deleteInfo() {
+        if (!window.confirm("Are you sure you want to delete your information? This action cannot be undone.")) {
+            return;
+        }
+        setLoading(true);
+        setError("");
+        try {
+            const user = auth.currentUser;
+
+            if (!user) {
+                throw new Error("You must be logged in to delete your info");
+            }
+            const idToken = await user.getIdToken();
+            const response = await fetch(`http://localhost:8080/api/users/${userId}/data`, {
+                method: "DELETE",
+                headers: {
+                    "Authorization": `Bearer ${idToken}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to delete user from database");
+            }
+
+            navigate("/");
+
+        } catch (error) {
+            console.error("Error deleting info:", error);
+            setError(error.message || "Failed to delete info. You may need to re-login.");
+        } finally {
+            setLoading(false);
+        }
+    }
+
 
     const handleSignOut = () => {
         localStorage.removeItem("isSignedIn");
@@ -148,6 +203,9 @@ function EditPg() {
             <div className="btn-group">
                 <button onClick={deleteAccount} className="btn danger-btn" disabled={loading}>
                     {loading ? "Processing..." : "Delete Account"}
+                </button>
+                <button onClick={deleteInfo} className="btn danger-btn" disabled={loading}>
+                    {loading ? "Processing..." : "Delete Information"}
                 </button>
             </div>
         </div>

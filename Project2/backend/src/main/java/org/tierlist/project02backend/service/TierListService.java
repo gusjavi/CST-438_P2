@@ -236,5 +236,66 @@ public class TierListService {
                     return new RuntimeException("TierListItem not found with id: " + itemId);
                 });
     }
+    @Transactional
+    public void deleteAllTierListsByUser(String userId) {
+        logger.info("Deleting all tier lists for user {}", userId);
+
+        // Get all tierlists owned by the user
+        List<TierList> userTierLists = tierListRepository.findByCreatorUserId(userId);
+
+        for (TierList tierList : userTierLists) {
+            Long tierListId = tierList.getId();
+
+            // Delete all ratings for this tierlist's items
+            List<TierListItem> items = tierListItemRepository.findByTierListId(tierListId);
+            for (TierListItem item : items) {
+                tierListRatingRepository.deleteByTierListItemId(item.getId());
+            }
+
+            // Delete all items in the tierlist
+            tierListItemRepository.deleteAll(items);
+
+            // Delete all likes for this tierlist
+            tierListLikeRepository.deleteAllByTierListId(tierListId);
+        }
+
+        // Delete all tierlists
+        tierListRepository.deleteAll(userTierLists);
+
+        logger.info("Successfully deleted all tier lists and associated data for user {}", userId);
+    }
+    @Transactional
+    public void deleteTierList(Long tierListId, String userId) {
+        logger.info("Deleting tier list {} by user {}", tierListId, userId);
+
+        TierList tierList = tierListRepository.findById(tierListId)
+                .orElseThrow(() -> {
+                    logger.error("TierList not found with id: {}", tierListId);
+                    return new RuntimeException("TierList not found with id: " + tierListId);
+                });
+
+        // Verify the user owns this tierlist
+        if (!tierList.getCreator().getUserId().equals(userId)) {
+            logger.error("User {} is not the owner of tier list {}", userId, tierListId);
+            throw new RuntimeException("User is not authorized to delete this tier list");
+        }
+
+        // Delete all ratings for this tierlist's items
+        List<TierListItem> items = tierListItemRepository.findByTierListId(tierListId);
+        for (TierListItem item : items) {
+            tierListRatingRepository.deleteByTierListItemId(item.getId());
+        }
+
+        // Delete all items in the tierlist
+        tierListItemRepository.deleteAll(items);
+
+        // Delete all likes for this tierlist
+        tierListLikeRepository.deleteAllByTierListId(tierListId);
+
+        // Finally delete the tierlist itself
+        tierListRepository.deleteById(tierListId);
+
+        logger.info("Successfully deleted tier list {} and all associated data", tierListId);
+    }
 
 }
