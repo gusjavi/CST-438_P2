@@ -1,6 +1,7 @@
 import React, {useState, useEffect, useRef} from "react";
 import { useNavigate } from "react-router-dom";
-import "./innerPages.css";
+//import "./innerPages.css"; // Keep the original CSS import
+
 function Dropdown({ options, onSelect }) {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
@@ -28,15 +29,22 @@ function Dropdown({ options, onSelect }) {
     }, []);
 
     return (
-        <div className="dropdown" ref={dropdownRef}>
-            <button onClick={toggleDropdown}>
-                Select a Category
+        <div className="dropdown relative" ref={dropdownRef}>
+            <button
+                onClick={toggleDropdown}
+                className="bg-gray-100 text-black py-1 px-3 rounded border border-gray-300 flex items-center"
+            >
+                {options[0]} <span className="ml-2">▼</span>
             </button>
             {isOpen && (
-                <ul className="dropdown-menu">
+                <ul className="dropdown-menu absolute bg-white shadow-lg border border-gray-300 rounded-md mt-1 z-10 w-40 max-h-48 overflow-y-auto">
                     {options.map((option) => (
-                        <li key={option} onClick={() => handleOptionClick(option)}>
-                            {option}
+                        <li
+                            key={option}
+                            onClick={() => handleOptionClick(option)}
+                            className="p-2 hover:bg-gray-100 cursor-pointer text-black flex items-center"
+                        >
+                            <span className="text-orange-500 mr-2">•</span> {option}
                         </li>
                     ))}
                 </ul>
@@ -44,6 +52,85 @@ function Dropdown({ options, onSelect }) {
         </div>
     );
 }
+
+function TierListDisplay({ tierList, isOwner }) {
+    const navigate = useNavigate();
+
+    const getTierColor = (tier) => {
+        const bgColors = {
+            "S": "bg-pink-200",
+            "A": "bg-orange-200",
+            "B": "bg-yellow-100",
+            "C": "bg-green-100",
+            "D": "bg-blue-200",
+            "F": "bg-red-200"
+        };
+        return bgColors[tier] || "bg-gray-200";
+    };
+
+    const handleEdit = () => {
+        navigate(`/edit_tierlist/${tierList.id}`);
+    };
+
+    return (
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+            <h3 className="text-xl font-bold p-4 text-center">{tierList.name}</h3>
+
+            {/* Sort tiers to ensure they display in the right order */}
+            {["S", "A", "B", "C", "D", "F"]
+                .filter(tier => Object.keys(tierList.tiers).includes(tier))
+                .map((tier) => (
+                    <div key={tier} className={`${getTierColor(tier)} mb-px`}>
+                        <div className="flex p-2">
+                            <div className="font-bold w-8 text-center">{tier}</div>
+                            <div className="flex flex-wrap flex-1 gap-2 pl-4">
+                                {tierList.tiers[tier] && tierList.tiers[tier].length > 0 ? (
+                                    tierList.tiers[tier].map((item, index) => (
+                                        <div key={index} className="bg-gray-50 rounded w-24 text-center overflow-hidden">
+                                            {item.imageUrl ? (
+                                                <img
+                                                    src={item.imageUrl.startsWith('data:') ? item.imageUrl : `data:image/jpeg;base64,${item.imageUrl}`}
+                                                    alt={item.itemName}
+                                                    className="w-full h-20 object-cover"
+                                                    onError={(e) => {
+                                                        e.target.src = `https://via.placeholder.com/100x80?text=${encodeURIComponent(item.itemName.charAt(0))}`;
+                                                    }}
+                                                />
+                                            ) : (
+                                                <div className="h-20 bg-gray-100 flex items-center justify-center text-2xl">
+                                                    {item.itemName.charAt(0).toUpperCase()}
+                                                </div>
+                                            )}
+                                            <div className="p-1 bg-gray-200 text-sm">{item.itemName}</div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-gray-500 italic p-2">
+                                        No items in this tier
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                ))
+            }
+
+            <div className="flex justify-between items-center p-4">
+                <div className="text-lg">❤️ #{tierList.likes || 0}</div>
+
+                {isOwner && (
+                    <button
+                        onClick={handleEdit}
+                        className="bg-orange-500 text-white py-1 px-4 rounded hover:bg-orange-600"
+                    >
+                        Edit Tierlist
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+}
+
 function LandingPg() {
     const navigate = useNavigate();
     const [isSignedIn, setSignedIn] = useState(localStorage.getItem("isSignedIn") === "true");
@@ -57,6 +144,11 @@ function LandingPg() {
     const [filteredUserTierLists, setFilteredUserTierLists] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState("General");
     const categories = ["General", "Anime", "Food", "Places", "Music", "Games", "Movies", "Animals"];
+
+    // Define the gradient background as in your original code
+    const gradientBackground = {
+        background: "linear-gradient(to right, rgb(58, 28, 113), rgb(215, 109, 119), rgb(255, 175, 123))"
+    };
 
     useEffect(() => {
         fetchTierLists();
@@ -360,7 +452,6 @@ function LandingPg() {
         return tiers;
     };
 
-
     const calculateAverageRating = (ratings) => {
         if (ratings.length === 0) return "F";
 
@@ -397,139 +488,153 @@ function LandingPg() {
     };
 
     return (
-        <div className="landing-container">
-            <div className="header">
-                <h1>Welcome {username}</h1>
-                {isSignedIn && <p onClick={handleSignOut} className="sign-out">Sign Out</p>}
-            </div>
-            <div className="btn-group">
-                {isSignedIn ? (
-                    <>
-                        <button onClick={() => navigate("/tier")} className="btn">Go to TierList</button>
-                        <button onClick={() => navigate("/edit")} className="btn">Edit Account</button>
-                    </>
-                ) : (
-                    <>
-                        <button onClick={() => navigate("/login")} className="btn">Sign In</button>
-                        <button onClick={() => navigate("/SignUp")} className="btn">Create Account</button>
-                    </>
-                )}
-            </div>
-            <h2>Tier Lists of the Week</h2>
-            {isSignedIn && (
-                <button onClick={() => setShowModal(true)} className="btn">My Tier List</button>
-            )}
-            <div className="category-selector">
-                <p>Category: {selectedCategory}</p>
-                <Dropdown options={categories} onSelect={handleCategorySelect} />
-            </div>
-            {isLoading ? (
-                <p>Loading tier lists...</p>
-            ) : error ? (
-                <div>
-                    <p className="error-message">{error}</p>
-                    <button onClick={fetchTierLists} className="btn">Retry</button>
-                </div>
-            ) : (
-                <div className="tier-list-wrapper">
-                    {filteredTierLists.length > 0 ? filteredTierLists.map((tierList) => (
-                        <TierListDisplay
-                            key={tierList.id}
-                            tierList={tierList}
-                            isOwner={tierList.creator?.userId === localStorage.getItem("userId")}
-                        />
-                    )) : (
-                        <p>No tier lists available for the {selectedCategory} category.</p>
+        <div className="min-h-screen" style={gradientBackground}>
+            <div className="container mx-auto px-4 py-8">
+                <div className="text-center mb-8 relative">
+                    <h1 className="text-4xl font-bold text-white mb-4">Welcome {username}</h1>
+                    {isSignedIn && (
+                        <button
+                            onClick={handleSignOut}
+                            className="absolute top-0 right-0 bg-orange-500 text-white py-1 px-4 rounded hover:bg-orange-600"
+                        >
+                            Sign Out
+                        </button>
                     )}
                 </div>
-            )}
 
-            {showModal && (
-                <div className="modal-overlay">
-                    <div className="modal-content">
-                        <h2>{username}'s Tier Lists</h2>
-                        <div className="category-selector">
-                            <p>Filter by Category: {selectedCategory}</p>
-                            <Dropdown options={categories} onSelect={handleCategorySelect} />
-                        </div>
-                        {isSignedIn && username !== "Guest" ? (
-                            filteredUserTierLists.length > 0 ? (
-                                <div className="user-tier-lists">
-                                    {filteredUserTierLists.map(tierList => (
-                                        <TierListDisplay
-                                            key={tierList.id}
-                                            tierList={tierList}
-                                            isOwner={true}
-                                        />
-                                    ))}
-                                </div>
-                            ) : (
-                                <p className={"error_notl"}>
-                                    {selectedCategory === "General"
-                                        ? "You haven't created any tier lists yet."
-                                        : `You haven't created any tier lists in the ${selectedCategory} category yet.`}
-                                </p>
-                            )
-                        ) : (
-                            <p>Please sign in to view your tier lists.</p>
-                        )}
-                        <div className="btn-group">
-                            <button className="close-btn" onClick={() => {
-                                fetchUserTierLists().then(lists => {
-                                    setUserTierLists(lists);
-                                    filterUserTierLists(lists, selectedCategory);
-                                });
-                            }}>Refresh</button>
-                            <button className="close-btn" onClick={() => setShowModal(false)}>Close</button>
-                        </div>
-                    </div>
+                <div className="flex justify-center gap-4 mb-8">
+                    {isSignedIn ? (
+                        <>
+                            <button
+                                onClick={() => navigate("/tier")}
+                                className="bg-orange-500 text-white py-1 px-4 rounded hover:bg-orange-600"
+                            >
+                                Go to TierList
+                            </button>
+                            <button
+                                onClick={() => navigate("/edit")}
+                                className="bg-orange-500 text-white py-1 px-4 rounded hover:bg-orange-600"
+                            >
+                                Edit Account
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <button
+                                onClick={() => navigate("/login")}
+                                className="bg-orange-500 text-white py-1 px-4 rounded hover:bg-orange-600"
+                            >
+                                Sign In
+                            </button>
+                            <button
+                                onClick={() => navigate("/SignUp")}
+                                className="bg-orange-500 text-white py-1 px-4 rounded hover:bg-orange-600"
+                            >
+                                Create Account
+                            </button>
+                        </>
+                    )}
                 </div>
-            )}
-        </div>
-    );
-}
 
-function TierListDisplay({ tierList, isOwner }) {
-    const navigate = useNavigate();
+                <h2 className="text-2xl font-bold text-white text-center mb-6">Tier Lists of the Week</h2>
 
-    const handleEdit = () => {
-        console.log({ tierList });
-        navigate(`/edit_tierlist/${tierList.id}`);
-    };
+                {isSignedIn && (
+                    <div className="flex justify-end mb-6">
+                        <button
+                            onClick={() => setShowModal(true)}
+                            className="bg-orange-500 text-white py-1 px-4 rounded hover:bg-orange-600"
+                        >
+                            My Tier List
+                        </button>
+                    </div>
+                )}
 
-    return (
-        <div className="tier-list-container">
-            <h2>{tierList.name}</h2>
-            <p>Category: {tierList.category || "General"}</p>
-            <div className="tier-box">
-                {Object.keys(tierList.tiers).map((tier) => (
-                    <div key={tier} className={`tier ${tier.toLowerCase()}`}>
-                        <h3>{tier} Tier</h3>
-                        <div className="tier-items">
-                            {tierList.tiers[tier].map((item, itemIndex) => (
-                                <div key={itemIndex} className="tier-item">
-                                    {item.imageUrl && (
-                                        <img
-                                            src={item.imageUrl.startsWith('data:') ? item.imageUrl : `data:image/jpeg;base64,${item.imageUrl}`}
-                                            alt={item.itemName}
-                                            className="tier-image"
-                                            onError={(e) => {
-                                                console.error('Image failed to load for:', item.itemName);
-                                                e.target.style.display = 'none';
-                                            }}
-                                        />
-                                    )}
-                                    <div>{item.itemName}</div>
-                                </div>
-                            ))}
+                <div className="flex items-center mb-6">
+                    <span className="text-white mr-2">Category:</span>
+                    <Dropdown options={categories} onSelect={handleCategorySelect} />
+                </div>
+
+                {isLoading ? (
+                    <p className="text-white text-center text-xl">Loading tier lists...</p>
+                ) : error ? (
+                    <div className="bg-white p-6 rounded-lg text-center">
+                        <p className="text-red-600 mb-2">Failed to load your tier lists. Please try again later.</p>
+                        <button
+                            onClick={fetchTierLists}
+                            className="bg-orange-500 text-white py-1 px-4 rounded hover:bg-orange-600"
+                        >
+                            Retry
+                        </button>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {filteredTierLists.length > 0 ? filteredTierLists.map((tierList) => (
+                            <TierListDisplay
+                                key={tierList.id}
+                                tierList={tierList}
+                                isOwner={tierList.creator?.userId === localStorage.getItem("userId")}
+                            />
+                        )) : (
+                            <p className="text-white text-center text-xl col-span-2">
+                                No tier lists available for the {selectedCategory} category.
+                            </p>
+                        )}
+                    </div>
+                )}
+
+                {showModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+                        <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-auto">
+                            <h2 className="text-2xl font-bold mb-4 text-center">{username}'s Tier Lists</h2>
+
+                            <div className="mb-4">
+                                <p className="mb-2">Filter by Category: <span className="font-semibold">{selectedCategory}</span></p>
+                                <Dropdown options={categories} onSelect={handleCategorySelect} />
+                            </div>
+
+                            {isSignedIn && username !== "Guest" ? (
+                                filteredUserTierLists.length > 0 ? (
+                                    <div className="space-y-4">
+                                        {filteredUserTierLists.map(tierList => (
+                                            <TierListDisplay
+                                                key={tierList.id}
+                                                tierList={tierList}
+                                                isOwner={true}
+                                            />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-red-500 text-center py-4">
+                                        {selectedCategory === "General"
+                                            ? "You haven't created any tier lists yet."
+                                            : `You haven't created any tier lists in the ${selectedCategory} category yet.`}
+                                    </p>
+                                )
+                            ) : (
+                                <p className="text-center py-4">Please sign in to view your tier lists.</p>
+                            )}
+
+                            <div className="flex justify-between mt-6">
+                                <button
+                                    className="bg-orange-500 text-white py-1 px-4 rounded hover:bg-orange-600"
+                                    onClick={() => {
+                                        fetchUserTierLists().then(lists => {
+                                            setUserTierLists(lists);
+                                            filterUserTierLists(lists, selectedCategory);
+                                        });
+                                    }}
+                                >
+                                    Refresh
+                                </button>
+                                <button
+                                    className="bg-orange-500 text-white py-1 px-4 rounded hover:bg-orange-600"
+                                    onClick={() => setShowModal(false)}
+                                >
+                                    Close
+                                </button>
+                            </div>
                         </div>
                     </div>
-                ))}
-            </div>
-            <div className="tier-actions">
-                <h2> ❤️ #{tierList.likes || 0}</h2>
-                {isOwner && (
-                    <button onClick={handleEdit} className="edit-btn">Edit Tierlist</button>
                 )}
             </div>
         </div>
