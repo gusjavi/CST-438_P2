@@ -25,15 +25,12 @@ public class TierListController {
     private static final Logger logger = LoggerFactory.getLogger(TierListController.class);
 
     private final TierListService tierListService;
-//    private final AISearchService aiSearchService;
+
 
     public TierListController(TierListService tierListService) {
         this.tierListService = tierListService;
     }
-//    public TierListController(TierListService tierListService, AISearchService aiSearchService) {
-//        this.tierListService = tierListService;
-//        this.aiSearchService = aiSearchService;
-//    }
+
 
     @PostMapping
     public TierList createTierList(@RequestBody TierList tierList) {
@@ -64,12 +61,6 @@ public class TierListController {
 
     @GetMapping("/weekly")
     public ResponseEntity<TierList> getWeeklyTierList() { return ResponseEntity.of(tierListService.getWeeklyFeaturedTierList()); }
-
-    @GetMapping("/admin/promote")
-    public String manualPromote() {
-        tierListService.promoteScheduledWeeklyTierList();
-        return "Weekly tier list promoted!";
-    }
 
     @GetMapping("/{id}")
     public ResponseEntity<TierList> getTierListById(@PathVariable Long id) {
@@ -145,6 +136,27 @@ public class TierListController {
             @PathVariable Long itemId,
             @RequestBody TierListItem item) {
         return ResponseEntity.ok(tierListService.updateTierListItem(tierListId, itemId, item));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteTierList(
+            @PathVariable Long id,
+            @RequestParam("userId") String userId) {
+        try {
+            tierListService.deleteTierList(id, userId);
+            return ResponseEntity.ok().build();
+        } catch (RuntimeException e) {
+            logger.error("Error deleting tier list: ", e);
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to delete tier list",
+                            "message", e.getMessage()));
+        }
+    }
+    @GetMapping("/liked/{userId}")
+    public List<TierList> getLikedTierLists(@PathVariable String userId) {
+        // You'll need to implement this method in your TierListService
+        return tierListService.getLikedTierLists(userId);
     }
 
     // New endpoint for paginated, sorted, and filtered tier lists

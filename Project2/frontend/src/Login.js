@@ -151,61 +151,6 @@ function LoginPage() {
         }
     }
 
-    // Google Sign-In Function
-    async function handleGoogleLogin() {
-        setLoading(true);
-        const provider = new GoogleAuthProvider();
-        try {
-            const result = await signInWithPopup(auth, provider);
-
-            const idToken = await result.user.getIdToken();
-            const displayName = result.user.displayName;
-            const res = await fetch("http://localhost:8080/api/auth/google-verify", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ token: idToken })
-            });
-            const data = await res.json();
-
-            if (data.success) {
-                localStorage.setItem("authToken", data.data);
-                localStorage.setItem("isSignedIn", "true");
-
-                let userDisplayName;
-
-                if (displayName) {
-                    userDisplayName = displayName;
-                    localStorage.setItem("username", displayName);
-                } else if (data.username) {
-                    userDisplayName = data.username;
-                    localStorage.setItem("username", data.username);
-                } else {
-                    userDisplayName = "User";
-                    localStorage.setItem("username", "User");
-                }
-
-                // Fetch and store user ID
-                if (userDisplayName) {
-                    const userId = await fetchUserIdByUsername(userDisplayName);
-                    if (userId) {
-                        localStorage.setItem("userId", userId);
-                        console.log("User ID stored:", userId);
-                    }
-                }
-
-                alert("Google login successful!");
-                navigate("/");
-            } else {
-                setError(data.error || "Google sign-in failed on server side.");
-            }
-        } catch (err) {
-            console.error("Google login error:", err);
-            setError("Failed to sign in with Google. Please try again.");
-        } finally {
-            setLoading(false);
-        }
-    }
-
     return (
         <div className="container1">
             <h2>Log in</h2>
@@ -219,10 +164,6 @@ function LoginPage() {
                     {loading ? "Logging in..." : "Log in"}
                 </button>
             </form>
-
-            <button onClick={handleGoogleLogin} className="btn google-btn" disabled={loading}>
-                {loading ? "Processing..." : "Sign in with Google"}
-            </button>
 
             <p>
                 Don't have an account? <span className="link" onClick={() => navigate("/signup")}>Sign up</span>

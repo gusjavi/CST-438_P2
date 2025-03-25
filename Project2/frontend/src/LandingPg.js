@@ -456,7 +456,10 @@ function LandingPg() {
             )}
             <h2>Tier Lists of the Week</h2>
             {isSignedIn && (
-                <button onClick={() => setShowModal(true)} className="btn">My Tier List</button>
+                < div className="btn-group">
+                    <button onClick={() => setShowModal(true)} className="btn">My Tier List</button>
+                    <button onClick={() => navigate("/liked-lists")} className="btn">My Liked Tier Lists</button>
+                </div>
             )}
             <div className="category-selector">
                 <p>Category: {selectedCategory}</p>
@@ -530,7 +533,49 @@ function LandingPg() {
 
 function TierListDisplay({ tierList, isOwner }) {
     const navigate = useNavigate();
+    const [likes, setLikes] = useState(tierList.likes || 0);
+    const [isLiked, setIsLiked] = useState(false);
 
+    const handleLike = async () => {
+        try {
+            const userId = localStorage.getItem("userId");
+            if (!userId) {
+                alert("Please sign in to like a tier list");
+                return;
+            }
+
+            const endpoint = isLiked
+                ? `http://localhost:8080/api/tierlists/${tierList.id}/like?userId=${userId}`
+                : `http://localhost:8080/api/tierlists/${tierList.id}/like?userId=${userId}`;
+
+            const method = isLiked ? 'DELETE' : 'POST';
+
+            const response = await fetch(endpoint, {
+                method: method,
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (response.ok) {
+                // Update likes count
+                const likeCountResponse = await fetch(`http://localhost:8080/api/tierlists/${tierList.id}/likes/count`, {
+                    credentials: 'include'
+                });
+
+                if (likeCountResponse.ok) {
+                    const likeData = await likeCountResponse.json();
+                    setLikes(likeData.count);
+                    setIsLiked(!isLiked);
+                }
+            } else {
+                console.error('Failed to like/unlike tier list');
+            }
+        } catch (error) {
+            console.error('Error liking tier list:', error);
+        }
+    };
     const handleEdit = () => {
         console.log({ tierList });
         navigate(`/edit_tierlist/${tierList.id}`);
@@ -566,7 +611,14 @@ function TierListDisplay({ tierList, isOwner }) {
                 ))}
             </div>
             <div className="tier-actions">
-                <h2> ❤️ #{tierList.likes || 0}</h2>
+                <div className="like-section">
+                    <button
+                        onClick={handleLike}
+                        className={`like-btn ${isLiked ? 'liked' : ''}`}
+                    >
+                        {isLiked ? '❤️' : '🤍'} {likes}
+                    </button>
+                </div>
                 {isOwner && (
                     <button onClick={handleEdit} className="edit-btn">Edit Tierlist</button>
                 )}

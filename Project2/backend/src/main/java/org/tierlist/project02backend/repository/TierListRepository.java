@@ -37,6 +37,9 @@ public interface TierListRepository extends JpaRepository<TierList, Long> {
     """, nativeQuery = true)
     Optional<TierList> findNextScheduled();
 
+    @Query("SELECT tl FROM TierList tl JOIN TierListLike tll ON tl.id = tll.tierList.id WHERE tll.user.userId = :userId")
+    List<TierList> findLikedTierListsByUserId(@Param("userId") String userId);
+
 
     // Keep the commented methods for future implementation
 //    Page<TierList> findByCategory(String category, Pageable pageable);
