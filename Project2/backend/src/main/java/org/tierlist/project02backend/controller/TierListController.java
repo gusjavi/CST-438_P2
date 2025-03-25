@@ -62,6 +62,15 @@ public class TierListController {
         return tierListService.getAllTierLists();
     }
 
+    @GetMapping("/weekly")
+    public ResponseEntity<TierList> getWeeklyTierList() { return ResponseEntity.of(tierListService.getWeeklyFeaturedTierList()); }
+
+    @GetMapping("/admin/promote")
+    public String manualPromote() {
+        tierListService.promoteScheduledWeeklyTierList();
+        return "Weekly tier list promoted!";
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<TierList> getTierListById(@PathVariable Long id) {
         return ResponseEntity.of(tierListService.getTierListById(id));

@@ -1,6 +1,7 @@
 import React, {useState, useEffect, useRef} from "react";
 import { useNavigate } from "react-router-dom";
 import "./innerPages.css";
+
 function Dropdown({ options, onSelect }) {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
@@ -57,6 +58,28 @@ function LandingPg() {
     const [filteredUserTierLists, setFilteredUserTierLists] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState("General");
     const categories = ["General", "Anime", "Food", "Places", "Music", "Games", "Movies", "Animals"];
+    const [weeklyTierList, setWeeklyTierList] = useState(null);
+
+    useEffect(() => {
+        fetchWeeklyTierList();
+    }, []);
+
+    const fetchWeeklyTierList = async () => {
+        try {
+            const res = await fetch("http://localhost:8080/api/tierlists/weekly", {
+                credentials: "include"
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setWeeklyTierList(data);
+            } else {
+                setWeeklyTierList(null);
+            }
+        } catch (err) {
+            console.error("Failed to fetch weekly tier list:", err);
+            setWeeklyTierList(null);
+        }
+    };
 
     useEffect(() => {
         fetchTierLists();
@@ -95,10 +118,11 @@ function LandingPg() {
     };
 
     const filterTierLists = (lists, category) => {
+        const publicLists = lists.filter(list => !list.weeklyParent); // Exclude weekly submissions
         if (category === "General") {
-            setFilteredTierLists(lists);
+            setFilteredTierLists(publicLists);
         } else {
-            setFilteredTierLists(lists.filter(list => list.category === category));
+            setFilteredTierLists(publicLists.filter(list => list.category === category));
         }
     };
 
@@ -325,7 +349,7 @@ function LandingPg() {
                 }
             }));
 
-            setAllTierLists(processedLists);
+            setAllTierLists(processedLists.filter(list => !list.weeklyParent));
             filterTierLists(processedLists, selectedCategory);
         } catch (err) {
             console.error("Error fetching tier lists:", err);
@@ -415,6 +439,21 @@ function LandingPg() {
                     </>
                 )}
             </div>
+            {isSignedIn && (
+                <button
+                    className="btn"
+                    onClick={() =>
+                        navigate("/weekly/submit", {
+                            state: {
+                                weeklyListId: weeklyTierList?.id,
+                                weeklyListTitle: weeklyTierList?.title || "Weekly Tier List"
+                            }
+                        })
+                    }
+                >
+                    Weekly Tier List
+                </button>
+            )}
             <h2>Tier Lists of the Week</h2>
             {isSignedIn && (
                 <button onClick={() => setShowModal(true)} className="btn">My Tier List</button>

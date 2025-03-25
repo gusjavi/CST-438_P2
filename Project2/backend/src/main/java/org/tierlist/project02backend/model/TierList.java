@@ -1,8 +1,12 @@
 package org.tierlist.project02backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Entity
 @Table(name = "tier_lists")
 public class TierList {
@@ -27,6 +31,12 @@ public class TierList {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "is_weekly_featured", nullable = false)
+    private boolean isWeeklyFeatured = false;
+
+    @Column(name = "scheduled_for")
+    private LocalDate scheduledFor;
+
     // Many TierLists can be created by one User (optional, if you want to track creator)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
@@ -36,6 +46,10 @@ public class TierList {
 //    private List<TierListLike> likes;
 
     private User creator;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "weekly_parent_id")
+    private TierList weeklyParent;
 
     public TierList() {
         this.createdAt = LocalDateTime.now();
@@ -97,4 +111,16 @@ public class TierList {
     public void setCreator(User creator) {
         this.creator = creator;
     }
+
+    public boolean isWeeklyFeatured() { return isWeeklyFeatured; }
+
+    public void setWeeklyFeatured(boolean weeklyFeatured) { isWeeklyFeatured = weeklyFeatured; }
+
+    public LocalDate getScheduledFor() { return scheduledFor; }
+
+    public void setScheduledFor(LocalDate scheduledFor) { this.scheduledFor = scheduledFor; }
+
+    public TierList getWeeklyParent() { return weeklyParent; }
+
+    public void setWeeklyParent(TierList weeklyParent) { this.weeklyParent = weeklyParent; }
 }

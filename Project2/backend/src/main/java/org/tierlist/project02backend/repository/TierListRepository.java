@@ -3,11 +3,14 @@ package org.tierlist.project02backend.repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 import org.tierlist.project02backend.model.TierList;
 import org.springframework.data.jpa.repository.EntityGraph;
 import java.util.List;
+import java.util.Optional;
 
 public interface TierListRepository extends JpaRepository<TierList, Long> {
 
@@ -17,6 +20,23 @@ public interface TierListRepository extends JpaRepository<TierList, Long> {
     @EntityGraph(attributePaths = {"creator"})
     @Query("SELECT t FROM TierList t WHERE t.isPublic = true")
     List<TierList> findByIsPublicTrue();
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE TierList t SET t.isWeeklyFeatured = false WHERE t.isWeeklyFeatured = true")
+    void clearWeeklyFeatured();
+
+    Optional<TierList> findByIsWeeklyFeaturedTrue();
+
+    @Query(value = """
+    SELECT * FROM tier_lists 
+    WHERE is_weekly_featured = false 
+      AND DATE(scheduled_for) = CURDATE()
+    ORDER BY scheduled_for
+    LIMIT 1
+    """, nativeQuery = true)
+    Optional<TierList> findNextScheduled();
+
 
     // Keep the commented methods for future implementation
 //    Page<TierList> findByCategory(String category, Pageable pageable);

@@ -1,5 +1,7 @@
 package org.tierlist.project02backend.service;
 
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.tierlist.project02backend.model.*;
@@ -12,6 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@EnableScheduling
 public class TierListService {
     private static final Logger logger = LoggerFactory.getLogger(TierListService.class);
 
@@ -35,9 +38,19 @@ public class TierListService {
     }
 
     public TierList createTierList(TierList tierList) {
-        logger.info("Creating new tier list: {}, is public: {}", tierList.getTitle(),tierList.isPublic());
+        logger.info("Creating new tier list: {}, is public: {}", tierList.getTitle(), tierList.isPublic());
+
+        if (tierList.isWeeklyFeatured() || tierList.getScheduledFor() != null) {
+            String creatorId = tierList.getCreator() != null ? tierList.getCreator().getUserId() : null;
+
+            if (!"ZeprKQicllSzPLajvD5cD7VBnWm1".equalsIgnoreCase(creatorId)) {
+                logger.warn("Unauthorized weekly tier list attempt by {}", creatorId);
+                throw new RuntimeException("Only admin users can schedule weekly tier lists.");
+            }
+        }
         return tierListRepository.save(tierList);
     }
+
 
     public List<TierList> getAllTierLists() {
         logger.info("Fetching all tier lists");
@@ -52,14 +65,34 @@ public class TierListService {
         return tierLists;
     }
 
+    @Scheduled(fixedRate = 60000) // testing 60 seconds
+    @Transactional
+    public void promoteScheduledWeeklyTierList() {
+        logger.info("Running promoteScheduledWeeklyTierList...");
+        tierListRepository.clearWeeklyFeatured();
+
+        Optional<TierList> next = tierListRepository.findNextScheduled();
+        next.ifPresent(tierList -> {
+            tierList.setWeeklyFeatured(true);
+            tierListRepository.save(tierList);
+        });
+    }
+
+    public Optional<TierList> getWeeklyFeaturedTierList() {
+        return tierListRepository.findByIsWeeklyFeaturedTrue();
+    }
+
     @Transactional(readOnly = true)
     public List<TierList> getAllPublicTierLists() {
-        logger.info("Fetching all public tier lists");
+        logger.info("Fetching all public tier lists (excluding weekly submissions)");
         try {
-            return tierListRepository.findByIsPublicTrue();
+            return tierListRepository.findByIsPublicTrue()
+                    .stream()
+                    .filter(t -> t.getWeeklyParent() == null)
+                    .toList();
         } catch (Exception e) {
             logger.error("Error fetching public tier lists: ", e);
-            throw e; // Re-throw so the controller can handle it
+            throw e;
         }
     }
 

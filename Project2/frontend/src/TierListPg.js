@@ -70,6 +70,9 @@ function TierListPage() {
     const [isPublic, setIsPublic] = useState(true);
     const [selectedCategory, setSelectedCategory] = useState("General");
     const categories = ["General", "Anime", "Food", "Places", "Music", "Games", "Movies", "Animals"];
+    const [isWeekly, setIsWeekly] = useState(false);
+    const [scheduledDate, setScheduledDate] = useState("");
+
 
     useEffect(() => {
         localStorage.setItem("isSignedIn", isSignedIn);
@@ -162,14 +165,14 @@ function TierListPage() {
             return;
         }
 
-        const hasItems = Object.keys(tiers).some(tier =>
-            tier !== 'storageBox' && tiers[tier].length > 0
-        );
+        const hasItems = Object.keys(tiers).some(tier => tiers[tier].length > 0);
 
-        if (!hasItems) {
+        // Allow items to be only in storageBox if it's a weekly list
+        if (!hasItems || (!isWeekly && tiers.storageBox.length > 0 && Object.keys(tiers).every(tier => tier === 'storageBox' || tiers[tier].length === 0))) {
             setSubmitError("Please add at least one item to a tier");
             return;
         }
+
 
         try {
             setIsSubmitting(true);
@@ -188,7 +191,10 @@ function TierListPage() {
                 category: selectedCategory,
                 creator: {
                     userId: userId
-                }
+                },
+                isWeeklyFeatured: isWeekly,
+                scheduledFor: isWeekly ? scheduledDate : null,
+                ...(isWeekly ? {} : {  isPublic: isPublic, category: selectedCategory })
             };
 
             const tierListResponse = await fetch(`${API_BASE_URL}/api/tierlists`, {
@@ -283,6 +289,26 @@ function TierListPage() {
                 <p>Category: {selectedCategory}</p>
                 <Dropdown options={categories} onSelect={handleCategorySelect} />
             </div>
+            {username === "test33" && (
+                <div className="weekly-scheduler">
+                    <label>
+                        <input
+                            type="checkbox"
+                            checked={isWeekly}
+                            onChange={() => setIsWeekly(!isWeekly)}
+                        />
+                        Schedule this as a Weekly Tier List
+                    </label>
+                    {isWeekly && (
+                        <input
+                            type="date"
+                            value={scheduledDate}
+                            onChange={(e) => setScheduledDate(e.target.value)}
+                            placeholder="YYYY-MM-DD"
+                        />
+                    )}
+                </div>
+            )}
 
             <div className="tier-list-wrapper2">
                 {Object.keys(tiers).map((tier) => (
