@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import "./innerPages.css";
+//import "./innerPages.css";
 
 function Dropdown({ options, onSelect }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -29,14 +29,19 @@ function Dropdown({ options, onSelect }) {
     }, []);
 
     return (
-        <div className="dropdown" ref={dropdownRef}>
-            <button onClick={toggleDropdown}>
+        <div className="dropdown relative" ref={dropdownRef}>
+            <button onClick={toggleDropdown} className="btn btn-sm" style={{background: "linear-gradient(to right, #ff8008, #ffc837)", border: "none", color: "white"}}
+            >
                 Select a Category
             </button>
             {isOpen && (
-                <ul className="dropdown-menu">
+                <ul className="dropdown-menu absolute z-10 mt-1 w-full bg-white border rounded-md shadow-lg">
                     {options.map((option) => (
-                        <li key={option} onClick={() => handleOptionClick(option)}>
+                        <li
+                            key={option}
+                            onClick={() => handleOptionClick(option)}
+                            className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                        >
                             {option}
                         </li>
                     ))}
@@ -70,7 +75,7 @@ function TierListPage() {
     const [isPublic, setIsPublic] = useState(true);
     const [selectedCategory, setSelectedCategory] = useState("General");
     const categories = ["General", "Anime", "Food", "Places", "Music", "Games", "Movies", "Animals"];
-
+     const primaryButtonStyle = {background: "linear-gradient(to right, #ff8008, #ffc837)", border: "none", color: "white"};
     useEffect(() => {
         localStorage.setItem("isSignedIn", isSignedIn);
     }, [isSignedIn, isPublic]);
@@ -262,112 +267,138 @@ function TierListPage() {
         }
     };
     return (
-        <div className="landing-container">
-            <div className="header">
-                <h1>{username}'s Tier List</h1>
-                {isSignedIn && <p onClick={handleSignOut} className="sign-out">Sign Out</p>}
-            </div>
-            <div className="btn-group">
-                <button onClick={() => navigate("/")} className="btn">Home</button>
-                <button onClick={() => navigate("/edit")} className="btn">Edit Account</button>
-            </div>
-            <input
-                type="text"
-                placeholder="Tier List Title"
-                className="tier-input"
-                value={tierListTitle}
-                onChange={(e) => setTierListTitle(e.target.value)}
-            />
-            <div className="category-selector">
-                <p>Category: {selectedCategory}</p>
-                <Dropdown options={categories} onSelect={handleCategorySelect} />
-            </div>
+        <div className="min-h-screen flex flex-col items-center" style={{background: "linear-gradient(to right, rgb(58, 28, 113), rgb(215, 109, 119), rgb(255, 175, 123))"}}>
+            <div className="w-full max-w-6xl px-4 py-8">
+                <div className="flex justify-between items-center mb-6">
+                    <h1 className="text-3xl font-bold text-white">{username}'s Tier List</h1>
+                    {isSignedIn && (<button onClick={handleSignOut} className="btn btn-sm" style={primaryButtonStyle}>Sign Out</button>)}
+                </div>
 
-            <div className="tier-list-wrapper2">
-                {Object.keys(tiers).map((tier) => (
-                    tier !== 'storageBox' && (
+                <div className="flex gap-2 mb-6">
+                    <button onClick={() => navigate("/")} className="btn" style={primaryButtonStyle}>Home</button>
+                    <button onClick={() => navigate("/edit")} className="btn" style={primaryButtonStyle}>Edit Account</button>
+                </div>
+
+                <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+                    <div className="flex flex-col md:flex-row gap-4 items-center mb-4">
+                        <input
+                            type="text"
+                            placeholder="Tier List Title"
+                            className="input input-bordered w-full"
+                            value={tierListTitle}
+                            onChange={(e) => setTierListTitle(e.target.value)}
+                        />
+
+                        <div className="category-selector flex items-center gap-2">
+                            <p className="font-medium">Category: {selectedCategory}</p>
+                            <Dropdown options={categories} onSelect={handleCategorySelect} />
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        {Object.keys(tiers).map((tier) => (
+                            tier !== 'storageBox' && (
+                                <div
+                                    key={tier}
+                                    className={`tier ${tier.toLowerCase()} p-4 rounded-lg`}
+                                    style={{
+                                        backgroundColor: tier === 'S' ? '#FFD7D7' : // Pink for S tier
+                                            tier === 'A' ? '#FFDEAD' : // Light orange/peach for A tier
+                                                tier === 'B' ? '#FFFACD' : // Light yellow for B tier
+                                                    tier === 'C' ? '#CCFFCC' : // Light green for C tier
+                                                        tier === 'D' ? '#ADD8E6' : // Light blue for D tier
+                                                            tier === 'F' ? '#FFCCCB' : // Light red for F tier
+                                                                'white'
+                                    }}
+                                    onDragOver={handleDragOver}
+                                    onDrop={(e) => handleDrop(tier, e)}
+                                >
+                                    <h3 className="text-xl font-bold mb-2">{tier} Tier</h3>
+                                    <div className="tier-items flex flex-wrap gap-3">
+                                        {tiers[tier].map((item, index) => (
+                                            <div
+                                                key={`${tier}-${index}`}
+                                                className="tier-item bg-white p-2 rounded shadow-md w-24"
+                                                draggable
+                                                onDragStart={() => handleDragStart(tier, index)}
+                                            >
+                                                <img src={item.image} alt="tier item" className="tier-image w-full h-20 object-cover rounded mb-1" />
+                                                <input
+                                                    type="text"
+                                                    value={item.text}
+                                                    onChange={(e) => handleEditItemText(tier, index, e.target.value)}
+                                                    className="editable-text w-full text-xs text-center"
+                                                />
+                                            </div>
+                                        ))}
+                                        {tiers[tier].length === 0 && (
+                                            <div className="text-gray-500 italic p-2">Drag items here</div>
+                                        )}
+                                    </div>
+                                </div>
+                            )
+                        ))}
+
                         <div
-                            key={tier}
-                            className={`tier ${tier.toLowerCase()}`}
+                            className="tier storageBox bg-gray-100 p-4 rounded-lg border-2 border-dashed border-gray-300"
                             onDragOver={handleDragOver}
-                            onDrop={(e) => handleDrop(tier, e)}
+                            onDrop={handleDropFile}
                         >
-                            <h3>{tier} Tier</h3>
-                            <div className="tier-items">
-                                {tiers[tier].map((item, index) => (
+                            <h3 className="text-xl font-bold mb-2">Storage Box</h3>
+                            <div className="tier-items flex flex-wrap gap-3">
+                                {tiers.storageBox.length === 0 && (
+                                    <p className="drag-placeholder text-gray-500 italic p-4 text-center w-full">
+                                        Drag images here or use the upload button below
+                                    </p>
+                                )}
+                                {tiers.storageBox.map((item, index) => (
                                     <div
-                                        key={`${tier}-${index}`}
-                                        className="tier-item"
+                                        key={`storageBox-${index}`}
+                                        className="tier-item bg-white p-2 rounded shadow-md w-24"
                                         draggable
-                                        onDragStart={() => handleDragStart(tier, index)}
+                                        onDragStart={() => handleDragStart("storageBox", index)}
                                     >
-                                        <img src={item.image} alt="tier item" className="tier-image" />
+                                        <img src={item.image} alt="tier item" className="tier-image w-full h-20 object-cover rounded mb-1" />
                                         <input
                                             type="text"
                                             value={item.text}
-                                            onChange={(e) => handleEditItemText(tier, index, e.target.value)}
-                                            className="editable-text"
+                                            onChange={(e) => handleEditItemText("storageBox", index, e.target.value)}
+                                            className="editable-text w-full text-xs text-center"
                                         />
                                     </div>
                                 ))}
                             </div>
                         </div>
-                    )
-                ))}
-                <div className="tier storageBox" onDragOver={handleDragOver} onDrop={handleDropFile}>
-                    <h3>Storage Box</h3>
-                    <div className="tier-items">
-                        {tiers.storageBox.length === 0 && <p className="drag-placeholder">Drag images here</p>}
-                        {tiers.storageBox.map((item, index) => (
-                            <div
-                                key={`storageBox-${index}`}
-                                className="tier-item"
-                                draggable
-                                onDragStart={() => handleDragStart("storageBox", index)}
-                            >
-                                <img src={item.image} alt="tier item" className="tier-image" />
-                                <input
-                                    type="text"
-                                    value={item.text}
-                                    onChange={(e) => handleEditItemText("storageBox", index, e.target.value)}
-                                    className="editable-text"
+                    </div>
+
+                    <div className="mt-6">
+                        <div className="privacy-toggle flex items-center gap-2 mb-4">
+                            <label className="flex items-center cursor-pointer">
+                                <span className="mr-2">Make this tier list public</span>
+                                <input type="checkbox" className="checkbox" checked={isPublic} onChange={() => setIsPublic(!isPublic)}
                                 />
+                            </label>
+                        </div>
+
+                        <div className="tier-input-wrapper">
+                            <label className="btn w-full mb-4" style={primaryButtonStyle}>
+                                <span>Upload Image</span>
+                                <input type="file" accept="image/*" onChange={handleAddItem} className="tier-input hidden"
+                                />
+                            </label>
+                        </div>
+
+                        {submitError && (
+                            <div className="error-message bg-red-100 text-red-700 p-3 rounded-lg mb-4">
+                                {submitError}
                             </div>
-                        ))}
+                        )}
+
+                        <button className="btn w-full" style={primaryButtonStyle} onClick={submitTierList} disabled={isSubmitting}>
+                            {isSubmitting ? "Creating..." : "Create Tier-List"}
+                        </button>
                     </div>
                 </div>
-            </div>
-
-            <div className="tier-input-wrapper">
-                <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleAddItem}
-                    className="tier-input"
-                />
-            </div>
-
-            <div className="privacy-toggle">
-                <label>
-                    <input
-                        type="checkbox"
-                        checked={isPublic}
-                        onChange={() => setIsPublic(!isPublic)}
-                    />
-                    Make this tier list public
-                </label>
-            </div>
-
-            {submitError && <div className="error-message">{submitError}</div>}
-
-            <div>
-                <button
-                    className="btn"
-                    onClick={submitTierList}
-                    disabled={isSubmitting}
-                >
-                    {isSubmitting ? "Creating..." : "Create Tier-List"}
-                </button>
             </div>
         </div>
     );
