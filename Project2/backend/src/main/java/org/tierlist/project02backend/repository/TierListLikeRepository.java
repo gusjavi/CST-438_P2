@@ -16,4 +16,8 @@ public interface TierListLikeRepository extends JpaRepository<TierListLike, Long
     @Modifying
     @Query("DELETE FROM TierListLike l WHERE l.user.userId = ?1 AND l.tierList.id = ?2")
     void deleteByUserIdAndTierListId(String userId, Long tierListId);
+    @Modifying
+    @Query("DELETE FROM TierListLike l WHERE l.tierList.id = ?1")
+    void deleteAllByTierListId(Long tierListId);
+
 }

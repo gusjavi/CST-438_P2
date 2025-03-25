@@ -1,4 +1,3 @@
-/*
 body {
     font-family: Arial, sans-serif;
     background-color: #121212;
@@ -505,6 +504,3 @@ input:checked + .slider:before {
 .dropdown-menu::-webkit-scrollbar-thumb:hover {
     background: #777;
 }
-*/
-@tailwind utilities;  // daisy ui
-

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.tierlist.project02backend.model.TierList;
+import org.springframework.data.jpa.repository.EntityGraph;
 import java.util.List;
 
 public interface TierListRepository extends JpaRepository<TierList, Long> {
@@ -13,8 +14,11 @@ public interface TierListRepository extends JpaRepository<TierList, Long> {
     List<TierList> findByCreatorUserId(String userId);
 
     // Changed to explicit query to fix potential naming convention issue
+    @EntityGraph(attributePaths = {"creator"})
     @Query("SELECT t FROM TierList t WHERE t.isPublic = true")
     List<TierList> findByIsPublicTrue();
+    @Query("SELECT tl FROM TierList tl JOIN TierListLike tll ON tl.id = tll.tierList.id WHERE tll.user.userId = :userId")
+    List<TierList> findLikedTierListsByUserId(@Param("userId") String userId);
 
     // Keep the commented methods for future implementation
 //    Page<TierList> findByCategory(String category, Pageable pageable);

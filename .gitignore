@@ -35,3 +35,6 @@ build/
 # Environment Variables
 .env
 
+# Ignore Firebase credentials
+firebase-service-account.json
+

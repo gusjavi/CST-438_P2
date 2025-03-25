@@ -15,6 +15,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+@CrossOrigin(
+        origins = "http://localhost", // The browser origin
+        allowCredentials = "true"
+)
 @RestController
 @RequestMapping("/api/tierlists")
 public class TierListController {
@@ -132,6 +136,27 @@ public class TierListController {
             @PathVariable Long itemId,
             @RequestBody TierListItem item) {
         return ResponseEntity.ok(tierListService.updateTierListItem(tierListId, itemId, item));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteTierList(
+            @PathVariable Long id,
+            @RequestParam("userId") String userId) {
+        try {
+            tierListService.deleteTierList(id, userId);
+            return ResponseEntity.ok().build();
+        } catch (RuntimeException e) {
+            logger.error("Error deleting tier list: ", e);
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to delete tier list",
+                            "message", e.getMessage()));
+        }
+    }
+    @GetMapping("/liked/{userId}")
+    public List<TierList> getLikedTierLists(@PathVariable String userId) {
+        // You'll need to implement this method in your TierListService
+        return tierListService.getLikedTierLists(userId);
     }
 
     // New endpoint for paginated, sorted, and filtered tier lists

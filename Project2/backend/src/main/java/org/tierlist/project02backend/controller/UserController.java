@@ -18,7 +18,12 @@ import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tierlist.project02backend.service.TierListService;
 
+@CrossOrigin(
+        origins = "http://localhost", // The browser origin
+        allowCredentials = "true"
+)
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -27,6 +32,8 @@ public class UserController {
     private UserRepository userRepository;
     @Autowired
     private AuthService authService;
+    @Autowired
+    private TierListService tierListService;
 
     // Get all users
     @GetMapping
@@ -117,9 +124,14 @@ public class UserController {
                 return new ResponseEntity<>(HttpStatus.FORBIDDEN);
             }
 
+            // Delete all tierlists and associated data first
+            tierListService.deleteAllTierListsByUser(userId);
+
+            // Then delete the user
             userRepository.deleteById(userId);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
+            logger.error("Error deleting user: ", e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -129,15 +141,7 @@ public class UserController {
     public ResponseEntity<HttpStatus> deleteUserData(@PathVariable String userId,
                                                      @RequestHeader("Authorization") String token) {
         try {
-            // Extract token
-            String idToken = token.replace("Bearer ", "");
-
-            UserRecord userRecord = authService.verifyToken(idToken);
-            String authenticatedUid = userRecord.getUid();
-
-            if (!authenticatedUid.equals(userId)) {
-                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-            }
+            tierListService.deleteAllTierListsByUser(userId);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
